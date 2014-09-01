@@ -5,6 +5,7 @@
   "description": "To be the best CMS framework",
   "keywords": [],
   "dependencies": {
+    "express" : "~4.8.7",
     "sails": "~0.10.2",
     "sails-disk": "~0.10.0",
     "sails-mongo": "~0.10.4",
