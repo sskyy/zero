@@ -30,7 +30,8 @@ function extendListener(module) {
         console.log("on ", name, method, arg)
         var bus = this
 
-        return model[method](arg).then( function( data){
+        return bus.models[name][method](arg).then( function( data){
+          console.log("=======")
           bus.data("model."+ name , data)
         }).fail(function(err){
           console.error("model err", err)
@@ -49,6 +50,8 @@ module.exports = {
   expand: function (module) {
     var root = this
     if (!module.models) return
+
+    //TODO merge life circle callbacks
     module.models.forEach(function (model) {
       root.orm.loadCollection(Waterline.Collection.extend(model));
     })
@@ -58,7 +61,8 @@ module.exports = {
 
     return q.promise(function (resolve, reject) {
       root.orm.initialize(config, function (err, models) {
-        if (err) throw err;
+        if (err) return reject( err);
+
         root.models = root.app.models = models.collections;
         root.connections = models.connections;
 

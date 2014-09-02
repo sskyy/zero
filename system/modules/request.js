@@ -17,12 +17,16 @@ function standardRoute(url) {
   return result
 }
 
-function standardCallback(callback, bus) {
+function standardCallback(callback, bus, fnForEachReq) {
 
   return function (req, res, next) {
     //This is important!!!
     req.bus = bus.fork()
     req.bus.start()
+
+    if( fnForEachReq ){
+      fnForEachReq( req )
+    }
 
     if (_.isFunction(callback)) {
 
@@ -83,10 +87,10 @@ module.exports = {
 
   },
   //api
-  add: function (callback, url) {
+  add: function (callback, url, fnForEachReq) {
     var root = this,
       route = standardRoute(url),
-      callback = standardCallback(callback, root.bus)
+      callback = standardCallback(callback, root.bus, fnForEachReq)
 
     console.log("[adding route]", route.url, route.method)
     root.app.route(route.url)[route.method](callback)

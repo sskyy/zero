@@ -1,4 +1,5 @@
 var _  = require('lodash')
+var tosource = require('tosource')
 
 var restMap = {
   'find': 'get',
@@ -8,11 +9,23 @@ var restMap = {
   'destroy' : 'delete'
 }
 
+var lifeCycleCallback =[
+  'beforeCreate',
+  'beforeValidate',
+  'beforeDestroy',
+  'beforeUpdate',
+  'afterCreate',
+  'afterValidate',
+  'afterDestroy',
+  'afterUpdate'
+]
+
 
 module.exports = {
   dependencies : ['model','request'],
   init : function(model, request){
     this.request = request
+    this.model = model
   },
   expand : function( module ){
     //read field `models`
@@ -36,11 +49,33 @@ module.exports = {
         //add request handler to send model operation result to browser
         //TODO separate the respond handler from route would be better?
         root.request.add( function restCallback( req, res){
+          console.log("[REST] fire" , event , _.merge(req.params, req.body, req.query))
           req.bus.fire( event, _.merge(req.params, req.body, req.query) ).then( function(){
-            console.log("[REST]" , event , req.bus.data('model.'+modelName))
             res.json( req.bus.data('model.'+modelName))
           })
-        }, url )
+        }, url, function setModelContextForEachReq( req){
+
+          req.bus.models = {}
+          _.forEach( root.model.models, function( model, name){
+
+
+            var clonedModel = _.clone( model )
+              clonedModel.__proto__ = model
+
+
+            lifeCycleCallback.forEach( function( callbackName){
+              console.log( tosource(model._callbacks[callbackName][0] ))
+              clonedModel._callbacks[callbackName][0] = function( val,cb){
+                req.bus.fire('model.'+name+"."+callbackName).then( function(){
+                  cb()
+                }).fail(_.partial(cb, callbackName +" failed"))
+              }
+            })
+
+            req.bus.models[name] = clonedModel
+          })
+
+        })
       })
     })
   }
