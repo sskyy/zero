@@ -20,7 +20,7 @@ function standardRoute(url) {
 function standardCallback(callback, bus, fnForEachReq) {
 
   return function (req, res, next) {
-    //This is important!!!
+    //This is important!!! we attach forked bus to every request, so we can use bus to
     req.bus = bus.fork()
     req.bus.start()
 
@@ -35,9 +35,8 @@ function standardCallback(callback, bus, fnForEachReq) {
     } else if (_.isString(callback)) {
 
       console.log("firing ", callback, _.merge(req.params, req.body, req.query), req.route)
-      bus.fire(callback, _.merge(req.params, req.body, req.query))
+      req.bus.fire(callback, _.merge(req.params, req.body, req.query))
       //important!
-      req.bus = bus
       next()
 
     } else if (_.isObject(callback)) {
@@ -47,14 +46,15 @@ function standardCallback(callback, bus, fnForEachReq) {
         return paramMapFn(req.params[name], req)
       }), req.params)
 
+      //resolve all params first
       q.allSettled(_.values(params)).then(function () {
-        bus.fire(callback.event, _.map(params, function (param) {
+        req.bus.fire(callback.event, _.mapValues(params, function (param) {
           return q.isPromise(param) ? param.value : param
         }))
-
         next()
       }).fail(function (err) {
         console.log(err)
+        next( err)
       })
     }
   }
