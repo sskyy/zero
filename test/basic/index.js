@@ -24,11 +24,6 @@ describe('bus test.',function(){
     assert.equal( bus.data("module.data2").toString(), objectData.toString())
   })
 
-  it("snapshot should share runtime with fork object", function(){
-    var bus = new Bus,
-    forkedBus = bus.fork(),
-    snapshotBus = forkedBus.snapshot()
-  })
 
   it("should fire with decorator", function( ){
     var bus = (new Bus).fork(),
@@ -56,8 +51,6 @@ describe('bus test.',function(){
 
   //TODO test allSettled function with promise in promise result
   it("should wait for cas promise resolve or reject", function( cb ){
-
-
     q.all([q.promise(function( resolve, reject){
       return q.promise( function(resolve, reject){
         setTimeout( function(){
@@ -72,5 +65,28 @@ describe('bus test.',function(){
       console.log("reject",err)
       cb()
     })
+  })
+
+  it("should wait all nested promise resolve", function( cb ){
+
+    var bus = (new Bus).fork(),
+      event = "someEvent"
+
+
+    bus.on(event,function on(){
+        return bus.error("some err")
+    })
+
+
+    bus.start()
+    bus.fire( event)
+
+    bus.then( function(){
+      cb()
+    }).fail(function(){
+      console.log("error should fire")
+      cb()
+    })
+
   })
 })

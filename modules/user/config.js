@@ -1,8 +1,6 @@
-module.exports = function(){
-  return {
+module.exports = {
     validator : {
         login : {
-
           email: {
             type: 'string',
             required: true,
@@ -29,4 +27,3 @@ module.exports = function(){
         }
     }
   }
-}

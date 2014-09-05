@@ -1,4 +1,6 @@
-var globalConfig = require('../../config')
+var globalConfig = require('../../config'),
+  _ = require('lodash')
+
 
 module.exports = {
   expand : function( module ){

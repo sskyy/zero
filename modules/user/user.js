@@ -1,5 +1,11 @@
+var config = require('./config')
+
+
 module.exports = {
-  models : require('./models')(this),
-  listen : require('./listen')(this),
-  config : require('./config')(this)
+  models : require('./models'),
+  listen : require('./listen')(config),
+  //this will allow app global config overwrite
+  config : config
 }
+
+

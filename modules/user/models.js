@@ -1,5 +1,4 @@
-module.exports = function( module){
-  return [{
+module.exports = [{
     identity: 'user',
     connection: 'myLocalDisk',
 
@@ -8,4 +7,3 @@ module.exports = function( module){
     },
     rest : true
   }]
-}

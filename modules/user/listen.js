@@ -1,10 +1,11 @@
 var schema = require('validate')
 
-module.exports = function( module ){
+module.exports = function( config ){
+
 
   var validator = {
-    login : schema( module.config.validator.login ),
-    registry : schema( module.config.validator.registry )
+    login : schema( config.validator.login ),
+    registry : schema( config.validator.registry )
   }
 
   return {
@@ -25,8 +26,9 @@ module.exports = function( module ){
     },
     'user.register' : function registerUser( params ){
       var root = this,
-        errors = validator.login.validate( params )
+        errors = validator.registry.validate( params )
 
+      console.error(errors, params)
       if( errors ) return root.error( 406, errors )
       //We may verify invite code or something here
       return root.fire("user.create",params)

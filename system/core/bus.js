@@ -495,7 +495,7 @@ function nestedBusPromise( obj ){
     obj.then(function( resolvedObj ){
       return nestedBusPromise( resolvedObj).then( defer.resolve )
     }).fail( defer.reject )
-  }else if(_.isObject(obj)){
+  }else if(_.isPlainObject(obj)){
     Q.all(_.values( obj).map(function( v ){ return nestedBusPromise(v)}) ).then(defer.resolve).fail(defer.reject)
   }else{
     return obj instanceof BusError ? rejectedPromise( obj.status) : resolvedPromise(obj)

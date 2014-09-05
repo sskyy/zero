@@ -26,11 +26,9 @@ module.exports = {
 
     //TODO 2. add theme request handler
 
-
-
     //last. default request handler
     this.request.add( function( req, res){
-      console.log("[RESPOND] respond default handler take action",req.bus._id,req.bus._fired)
+      console.log("[RESPOND] respond default handler take action",req.bus._fired)
       //bus never fired and not request handler take action, we send 404
       if( !req.bus._fired ){
         console.log("[RESPOND] NOTHING HAPPENED")
@@ -38,6 +36,8 @@ module.exports = {
       }else{
         //must wait all result resolved!
         req.bus.then(function(){
+          console.log("[RESPOND] success respond", req.bus.data('respond'))
+          console.log( req.bus.error()[0] )
           res.json( req.bus.data('respond'))
         }).fail( function(err) {
           console.log("[RESPOND] on error",err)
