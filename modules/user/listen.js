@@ -1,4 +1,5 @@
-var schema = require('validate')
+var schema = require('validate'),
+  _ = require('lodash')
 
 module.exports = function( config ){
 
@@ -28,10 +29,15 @@ module.exports = function( config ){
       var root = this,
         errors = validator.registry.validate( params )
 
-      console.error(errors, params)
-      if( errors ) return root.error( 406, errors )
+      if( errors.length ) return root.error( 406, errors )
       //We may verify invite code or something here
-      return root.fire("user.create",params)
+      return root.fire("user.create",params).then(function(){
+        var user = _.clone( root.data('user.create') )
+        delete user.password
+
+        root.session.user = user
+        root.data('respond', user)
+      })
     },
     'user.logout' : function(){
       this.session.user = null

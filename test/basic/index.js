@@ -89,4 +89,19 @@ describe('bus test.',function(){
     })
 
   })
+
+  it( "should immediate resolve when fire empty event", function(cb){
+    var bus = (new Bus).fork(),
+      event = "someEvent"
+
+    bus.start()
+
+    bus.fire( event).then( function(){
+      console.log("empty event")
+      cb()
+    }).fail(function(){
+      cb()
+    })
+
+  })
 })

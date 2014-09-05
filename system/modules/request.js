@@ -25,7 +25,11 @@ function standardCallback(callback, bus, fnForEachReq) {
     req.bus._started || req.bus.start()
     req.bus.session = req.bus.session || req.session
 
+
+
     if( fnForEachReq ){
+
+      console.log("fnForEachReq", fnForEachReq, callback, bus)
       fnForEachReq( req )
     }
 
@@ -70,13 +74,12 @@ module.exports = {
     this.bus = bus.bus
   },
   expand: function (module) {
-
+    var root = this
     //read route from data
     console.log("[request expand]", module.name, module.route, module.status)
-    _.mapValues(module.route, this.add.bind(this))
-
-    //respond route must be match in the last
-    this.responds.push(module.respond)
+    _.forEach( module.route, function( handler, url ){
+      root.add( handler, url)
+    })
   },
   bootstrap: function () {
     //read respond
@@ -93,7 +96,7 @@ module.exports = {
       route = standardRoute(url),
       callback = standardCallback(callback, root.bus, fnForEachReq)
 
-    console.log("[adding route]", route.url, route.method)
+    console.log("[adding route]", route.url, route.method )
     root.app.route(route.url)[route.method](callback)
   }
 }

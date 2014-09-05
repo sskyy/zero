@@ -53,7 +53,6 @@ Bus.prototype.fork = function () {
     _forked: true,
     _origin :root,
     _fired : false,
-    _id : root._forked + 1,
     _snapshoted : 0
   }
 
@@ -62,6 +61,7 @@ Bus.prototype.fork = function () {
     !isRuntimeAttr(i) && (newEmptyBust[i] = root[i] )
   }
 
+  newEmptyBust._id = root._forked + 1,
   root._forked++
   return newEmptyBust
 }
@@ -76,8 +76,7 @@ Bus.prototype.snapshot = function(){
 
   var newSnapshot = {
     _snapshot : true,
-    _origin : root,
-    _id : root._id * 100 + root._snapshoted + 1
+    _origin : root
   }
 
   //clone everything include runtime attributes
@@ -85,6 +84,7 @@ Bus.prototype.snapshot = function(){
     newSnapshot[i] = root[i]
   }
 
+  newSnapshot._id = root._id * 100 + root._snapshoted + 1
   root._snapshoted++
   return newSnapshot
 }
@@ -382,7 +382,7 @@ function appendChildListeners(stack) {
  */
 Bus.prototype.fire = function (eventOrg, args, opt) {
 
-  console.log("[BUS] firing :", eventOrg, args)
+  console.log("[BUS] firing :", eventOrg, args, 'bus id:', this._id)
   if (!this._started) {
     console.log("[BUS] not started!")
     return false
@@ -469,10 +469,8 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
   _.extend(root['$$results'], _.zipObject([eventOrg], [results]))
 //  console.log( "$$results",root['$$results'])
 
-  console.log("[BUS] bus fired!!!!")
   this._fired = true
-
-  return wrapAsPromise(results)
+  return nestedBusPromise(results)
 }
 
 Bus.prototype.fireWithDecorator = function( eventOrg, args, opt){
@@ -489,19 +487,61 @@ Bus.prototype.fireWithDecorator = function( eventOrg, args, opt){
 /************************/
 
 function nestedBusPromise( obj ){
-  var defer = Q.defer()
+  var defer = Q.defer(),
+    promiseOrErrorChild
 
-  if( Q.isPromise( obj )){
+  if( !_.isObject(obj)){
+    defer.resolve(obj)
+
+  }else if( Q.isPromise( obj )){
     obj.then(function( resolvedObj ){
-      return nestedBusPromise( resolvedObj).then( defer.resolve )
+      return nestedBusPromise( resolvedObj).then( function(){
+        defer.resolve( extractPromiseValue( obj ))
+      })
     }).fail( defer.reject )
-  }else if(_.isPlainObject(obj)){
-    Q.all(_.values( obj).map(function( v ){ return nestedBusPromise(v)}) ).then(defer.resolve).fail(defer.reject)
+
+  }else if( obj instanceof BusError ){
+    defer.reject( obj.status)
+
   }else{
-    return obj instanceof BusError ? rejectedPromise( obj.status) : resolvedPromise(obj)
+    promiseOrErrorChild = extractPromiseOrErrorChildren(obj)
+
+    if( promiseOrErrorChild.length ){
+      console.log("has promise ")
+      console.log( promiseOrErrorChild )
+      Q.all( promiseOrErrorChild ).then( function(){
+        defer.resolve( extractPromiseValue( obj ) )
+      }).fail(defer.reject)
+
+    }else{
+      defer.resolve( obj )
+    }
   }
 
   return defer.promise
+}
+
+function extractPromiseOrErrorChildren(obj, resultContainer){
+  resultContainer = resultContainer || []
+
+  if( !_.isObject(obj) ) return resultContainer
+
+  _.forEach(obj, function( v, name ){
+    if(Q.isPromise(v) ){
+      console.log("promise name", name)
+      resultContainer.push( v )
+
+    }else if(v instanceof BusError){
+      console.log("error name", name)
+
+      resultContainer.push( rejectedPromise(v.status) )
+
+    }else{
+      resultContainer = resultContainer.concat( extractPromiseOrErrorChildren(v) )
+    }
+  })
+
+  return resultContainer
 }
 
 function rejectedPromise( err ){
@@ -513,8 +553,20 @@ function resolvedPromise( obj ){
 }
 
 function extractPromiseValue( values ){
-  return _.mapValues( values,function(i){
-    return Q.isPromise(i) ? extractPromiseValue(i.value) : i
+  return _.mapValues( values, function(i){
+    if( Q.isPromise(i) ){
+      return extractPromiseValue(i.value)
+    }else if(_.isObject( i)){
+      return extractPromiseValue(i)
+    }else{
+      return i
+    }
+  })
+}
+
+function addKeys( obj, values){
+  return _.omit(_.zipObject(Object.keys(obj), values), function(v){
+    return typeof v === undefined
   })
 }
 
@@ -523,6 +575,7 @@ Bus.prototype.then = function(cb){
   var root = this
 
   return nestedBusPromise( root['$$results'] ).then(function( values ){
+     console.log("root['$$results']",root['$$results'])
      return cb.call( root, extractPromiseValue( values ) )
   })
 }
@@ -534,72 +587,6 @@ Bus.prototype.fail = function(cb){
   return nestedBusPromise( root['$$results'] ).fail(function( err ){
     return cb.call( root, err )
   })
-}
-
-
-/**
- * PromiseLikeObject
- */
-function promiseLikeObject( data ){
-  _.extend( this, data)
-}
-
-promiseLikeObject.prototype.then = function( cb ){
-  //if any listener return a error instance, we reject the promise at once.
-  var root = this
-
-  //if _promise not initialized
-  root._promise = root._promise || nestedBusPromise( this )
-
-  return root._promise.then(function( values ){
-    return cb.call( root,  addKeys(root, extractPromiseValue(values)))
-  })
-}
-
-function addKeys( obj, values){
-  return _.omit(_.zipObject(Object.keys(obj), values), function(v){
-    return typeof v === undefined
-  })
-}
-
-promiseLikeObject.prototype.fail = function( cb ){
-  //if any listener return a error instance, we reject the promise at once.
-  var err = _.first(_.values(this), function(i){ return i instanceof BusError})
-  if( err ){
-    console.log("[BUS] fire failed:", err)
-    return cb.call( this,  err)
-  }
-
-  var root = this
-  root._promise = root._promise || Q.all(_.reduce( this, function( a, b ){
-    var transformB
-
-    //wrap promiseLikeObject to real Q promise object
-    if( b instanceof promiseLikeObject){
-
-      transformB = Q.promise(function( resolve, reject){
-        b.then(d.resolve).fail(reject)
-      })
-
-    }else if( b instanceof BusError ){
-
-      transformB = rejectedPromise(err.status)
-
-    }else{
-      transformB = b
-    }
-
-    return a.concat( transformB )
-  },[]))
-
-  return root._promise.fail(function( err){
-    return cb.call( this,  err)
-  })
-}
-
-function wrapAsPromise( result ){
-  var promiseLike =  new promiseLikeObject( result )
-  return promiseLike
 }
 
 function BusError(reason){

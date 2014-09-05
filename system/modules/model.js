@@ -45,7 +45,6 @@ function extendListener(module) {
         //we should use cloned orm model function, so inside the function we can trigger lifecycle callbacks
         var clonedModels = cloneModels( module.models, bus )
 
-        //TODO we use bus.models means we know we attached models to bus, this is not right
         return clonedModels[name][method](arg).then( function( data){
           bus.data( name+"."+ method , data)
           return data
@@ -69,10 +68,14 @@ function cloneModels( models, bus ){
     lifeCycleCallback.forEach( function( callbackName){
 
       var transformCallbackName = callbackName.replace(/([a-z]+)([A-Z])([a-z]+)/,"$2$3.$1").toLowerCase()
-      clonedModel._callbacks[callbackName].push(function( val,cb){
+      clonedModel._callbacks[callbackName].push( function modelLifeCycleCallback( val,cb){
         bus.fire( name+"."+transformCallbackName, val).then( function(){
+          console.log("======nothing happened", name, transformCallbackName)
           cb()
-        }).fail(_.partial(cb, transformCallbackName +" failed"))
+        }).fail(function(){
+          console.log("======error happened", name, transformCallbackName)
+          cb(name+"."+transformCallbackName + " failed" )
+        })
       })
 
     })
