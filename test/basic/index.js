@@ -1,5 +1,6 @@
 var Bus = require('../../system/core/bus'),
-  assert = require('assert')
+  assert = require('assert'),
+  q = require('q')
 
 function print( obj){
   console.log( JSON.stringify(obj, null, 4))
@@ -50,6 +51,26 @@ describe('bus test.',function(){
 
       print( bus.$$traceStack )
 
+    })
+  })
+
+  //TODO test allSettled function with promise in promise result
+  it("should wait for cas promise resolve or reject", function( cb ){
+
+
+    q.all([q.promise(function( resolve, reject){
+      return q.promise( function(resolve, reject){
+        setTimeout( function(){
+          reject("hahaha")
+        }, 300)
+      }).then(resolve).fail(reject)
+
+    }),11]).then(function(a){
+      console.log("resolve!!!resolve",a)
+      cb()
+    }).fail(function(err){
+      console.log("reject",err)
+      cb()
     })
   })
 })

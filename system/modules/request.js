@@ -21,8 +21,9 @@ function standardCallback(callback, bus, fnForEachReq) {
 
   return function (req, res, next) {
     //This is important!!! we attach forked bus to every request, so we can use bus to
-    req.bus = bus.fork()
-    req.bus.start()
+    req.bus = req.bus || bus.fork()
+    req.bus._started || req.bus.start()
+    req.bus.session = req.bus.session || req.session
 
     if( fnForEachReq ){
       fnForEachReq( req )

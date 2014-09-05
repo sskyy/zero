@@ -42,6 +42,8 @@ function Bus(opt) {
   this._mute = {}
   this._events = {listeners: [], children: {"str": {}, "reg": {}}}
   this._started = false
+  this._id = 1
+  this._forked =0
 }
 
 Bus.prototype.fork = function () {
@@ -49,7 +51,10 @@ Bus.prototype.fork = function () {
 
   var newEmptyBust = {
     _forked: true,
-    _origin :root
+    _origin :root,
+    _fired : false,
+    _id : root._forked + 1,
+    _snapshoted : 0
   }
 
   //clone every thing including functions except runtime data
@@ -57,23 +62,30 @@ Bus.prototype.fork = function () {
     !isRuntimeAttr(i) && (newEmptyBust[i] = root[i] )
   }
 
-
+  root._forked++
   return newEmptyBust
 }
 
 Bus.prototype.snapshot = function(){
+  if( !this._started ){
+    console.log("you can only snapshot started bus")
+    return false
+  }
+
   var root = this
 
   var newSnapshot = {
     _snapshot : true,
-    _origin : root
+    _origin : root,
+    _id : root._id * 100 + root._snapshoted + 1
   }
 
-  //clone everything inclue runtime
+  //clone everything include runtime attributes
   for( var i in root ){
     newSnapshot[i] = root[i]
   }
 
+  root._snapshoted++
   return newSnapshot
 }
 
@@ -95,6 +107,8 @@ Bus.prototype.start = Bus.prototype.restart = function () {
   _.forEach(['$$data','$$results'],function(key){
       root[key] = {}
     })
+  root['$$error'] = []
+
   root._started = true
 }
 
@@ -110,7 +124,6 @@ Bus.prototype.empty = function () {
 Bus.prototype.setTracker = function () {
 
   this.$$traceStack = []
-  this.$$promiseStackRef = null
   //set reference to root when start
   this.$$traceRef = this.$$traceStack
 }
@@ -128,7 +141,8 @@ Bus.prototype.data = function( name, data){
     console.log("[BUS] getting data", name, this.$$data, ref)
     return _.isObject(ref)?_.cloneDeep(ref):ref
   }else{
-    return setRef( this.$$data, name, data)
+    setRef( this.$$data, name, data)
+    return data
   }
 }
 
@@ -373,6 +387,8 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
     console.log("[BUS] not started!")
     return false
   }
+  //should
+
 
   var caller = arguments.callee.caller.name
 
@@ -453,10 +469,12 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
   _.extend(root['$$results'], _.zipObject([eventOrg], [results]))
 //  console.log( "$$results",root['$$results'])
 
+  console.log("[BUS] bus fired!!!!")
+  this._fired = true
+
   return wrapAsPromise(results)
 }
 
-//TODO  is it working?
 Bus.prototype.fireWithDecorator = function( eventOrg, args, opt){
   var root = this
   return root.fire( eventOrg + ".before" , args, opt).then( function(){
@@ -466,59 +484,116 @@ Bus.prototype.fireWithDecorator = function( eventOrg, args, opt){
   })
 }
 
+/************************/
+/*  Promise extension   */
+/************************/
+
+function nestedBusPromise( obj ){
+  var defer = Q.defer()
+
+  if( Q.isPromise( obj )){
+    obj.then(function( resolvedObj ){
+      return nestedBusPromise( resolvedObj).then( defer.resolve )
+    }).fail( defer.reject )
+  }else if(_.isObject(obj)){
+    Q.all(_.values( obj).map(function( v ){ return nestedBusPromise(v)}) ).then(defer.resolve).fail(defer.reject)
+  }else{
+    return obj instanceof BusError ? rejectedPromise( obj.status) : resolvedPromise(obj)
+  }
+
+  return defer.promise
+}
+
+function rejectedPromise( err ){
+  return Q.promise(function( resolve, reject){ reject(err) })
+}
+
+function resolvedPromise( obj ){
+  return Q.promise(function(resolve){ resolve(obj)})
+}
+
+function extractPromiseValue( values ){
+  return _.mapValues( values,function(i){
+    return Q.isPromise(i) ? extractPromiseValue(i.value) : i
+  })
+}
+
 //TODO every time we call then, we create a new promise based on current $$result, better way to do this?
 Bus.prototype.then = function(cb){
   var root = this
 
-  return Q.allSettled(_.reduce(root['$$results'], function(a, b){
-    return a.concat(_.values(b))
-  },[]) ).then(function( values){
-    return cb.call( root,  _.zipObject( Object.keys( root), values.map(function(i){ return i.value}) ) )
+  return nestedBusPromise( root['$$results'] ).then(function( values ){
+     return cb.call( root, extractPromiseValue( values ) )
   })
 }
 
 //TODO every time we call fail, we create a new promise based on current $$result, better way to do this?
 Bus.prototype.fail = function(cb){
-  return Q.allSettled(_.reduce(root['$$results'], function(a, b){
-    return a.concat(_.values(b))
-  },[]) ).fail(function( values){
-    return cb.call( root,  _.zipObject( Object.keys( root), values.map(function(i){ return i.value}) ) )
+  var root = this
+
+  return nestedBusPromise( root['$$results'] ).fail(function( err ){
+    return cb.call( root, err )
   })
 }
 
+
+/**
+ * PromiseLikeObject
+ */
 function promiseLikeObject( data ){
   _.extend( this, data)
 }
 
 promiseLikeObject.prototype.then = function( cb ){
   //if any listener return a error instance, we reject the promise at once.
-  if(_.some(this, function(i){
-    return i instanceof BusError
-  })){
-    return Q(function(resolve,reject){ return reject()})
+  var root = this
+
+  //if _promise not initialized
+  root._promise = root._promise || nestedBusPromise( this )
+
+  return root._promise.then(function( values ){
+    return cb.call( root,  addKeys(root, extractPromiseValue(values)))
+  })
+}
+
+function addKeys( obj, values){
+  return _.omit(_.zipObject(Object.keys(obj), values), function(v){
+    return typeof v === undefined
+  })
+}
+
+promiseLikeObject.prototype.fail = function( cb ){
+  //if any listener return a error instance, we reject the promise at once.
+  var err = _.first(_.values(this), function(i){ return i instanceof BusError})
+  if( err ){
+    console.log("[BUS] fire failed:", err)
+    return cb.call( this,  err)
   }
 
-
   var root = this
-  root._promise = root._promise || Q.allSettled(_.reduce( this, function( a, b ){
-      var transformB
+  root._promise = root._promise || Q.all(_.reduce( this, function( a, b ){
+    var transformB
 
-      if( b instanceof promiseLikeObject){
-        var d = Q.defer()
+    //wrap promiseLikeObject to real Q promise object
+    if( b instanceof promiseLikeObject){
 
-        b.then(d.resolve)
+      transformB = Q.promise(function( resolve, reject){
+        b.then(d.resolve).fail(reject)
+      })
 
-        transformB = d.promise
-      }else{
-        transformB = b
-      }
+    }else if( b instanceof BusError ){
 
-      return a.concat( transformB )
-    },[]))
+      transformB = rejectedPromise(err.status)
 
+    }else{
+      transformB = b
+    }
 
-  return root._promise.then(function( values){
-    return cb.call( root,  _.zipObject( Object.keys( root), values.map(function(i){ return i.value}) ) )
+    return a.concat( transformB )
+  },[]))
+
+  return root._promise.fail(function( err){
+    return cb.call( this,  err)
   })
 }
 
@@ -528,15 +603,28 @@ function wrapAsPromise( result ){
 }
 
 function BusError(reason){
-  this.reason = reason
+  _.extend(this,reason)
 }
 
-BusError.prototype.toString = function(){
-  return this.reason
-}
+Bus.prototype.error = function( status, error ){
 
-Bus.prototype.error = function( reason ){
-  return new BusError(reason)
+  if( arguments.length == 0 )return this.$$error
+
+  var reason
+
+  if( arguments.length == 1 ){
+    if( !status.status ){
+      reason = {status:500, error:status}
+    }else{
+      reason = status
+    }
+  }else{
+    reason = {status:status, error :error}
+  }
+
+  var busError = new BusError(reason)
+  this.$$error.push(busError)
+  return busError
 }
 
 

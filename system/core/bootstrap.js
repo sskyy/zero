@@ -1,11 +1,8 @@
-var Bus = require('./bus'),
-  loader = require('./loader'),
+var loader = require('./loader'),
   q = require('q'),
   _ = require('lodash')
 
 module.exports = function( app, opt, cb ){
-
-  var bus = new Bus
 
   return loader.loadAll.call(app, opt, function(){
     try{

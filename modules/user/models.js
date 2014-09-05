@@ -1,9 +1,11 @@
-module.exports = [{
-  identity: 'user',
-  connection: 'myLocalDisk',
+module.exports = function( module){
+  return [{
+    identity: 'user',
+    connection: 'myLocalDisk',
 
-  attributes: {
-    name: 'string'
-  },
-  rest : true
-}]
+    attributes: {
+      name: 'string'
+    },
+    rest : true
+  }]
+}
