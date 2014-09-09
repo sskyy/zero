@@ -14,10 +14,11 @@ module.exports = function( app, opt, cb ){
         return a.concat( bootstrapResult )
       },[])
     }catch(e){
-      console.error(e)
+      console.error("bootstrap error",e)
     }
 
-    q.allSettled( strap )
+
+    q.all( strap )
       .then(cb)
       .fail( function(err){
       console.error( err)

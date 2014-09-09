@@ -86,7 +86,7 @@ module.exports = {
       statics:_.zipObject( statics,  fill(statics.length, true))
     }
 
-    console.log("[THEME] cache",themePath, JSON.stringify( root.cache, null, 4))
+//    console.log("[THEME] cache",themePath, JSON.stringify( root.cache, null, 4))
     console.log("[THEME] route",matchRoute)
 
     var reqHandler =  function( req, res, next ){

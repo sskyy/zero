@@ -507,8 +507,6 @@ function nestedBusPromise( obj ){
     promiseOrErrorChild = extractPromiseOrErrorChildren(obj)
 
     if( promiseOrErrorChild.length ){
-      console.log("has promise ")
-      console.log( promiseOrErrorChild )
       Q.all( promiseOrErrorChild ).then( function(){
         defer.resolve( extractPromiseValue( obj ) )
       }).fail(defer.reject)

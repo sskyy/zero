@@ -1,0 +1,79 @@
+<div><!-- Small boxes (Stat box)-->
+
+    <div ng-controller="widget.time" class="welcome row">
+        <div class="title item">Welcome</div>
+        <div class="item time">{{time}}</div>
+    </div>
+
+    <div >
+        <div class="box box-transparent">
+            <div class="box-header"><i class="fa fa-signal"></i>
+
+                <h3 class="box-title">访问统计</h3></div>
+            <div class="box-body border-radius-none">
+                <div id="line-chart" style="height: 250px;" class="chart" ng-controller="visits">
+                    <canvas linechart options="options" data="chart"></canvas>
+                </div>
+            </div>
+            <!-- /.box-body-->
+            <!-- /.box-->
+        </div>
+    </div>
+    <!-- /.row--><!-- Main row-->
+    <div class="row margin"><!-- Left col-->
+        <section class="col-lg-7 connectedSortable"><!-- solid sales graph-->
+
+            <!-- view board-->
+            <div class="box">
+                <div class="box-header"><i class="fa fa-list-ul"></i>
+
+                    <h3 class="box-title">阅读排行榜</h3>
+
+                    <div class="box-tools pull-right"></div>
+                </div>
+                <!-- /.box-header-->
+                <div class="box-body" ng-controller="board">
+                    <ul class="todo-list">
+                        <li ng-repeat="post in posts">
+                            <span class="text"><a href="/page/post/{{post.id}}" target="_blank">{{post.title}}</a></span>
+                            <span class="text pull-right">{{post.view}}</span>
+                        </li>
+
+                    </ul>
+                </div>
+                <!-- /.box-body--><!-- /.box-->
+            </div>
+        </section>
+        <!-- /.Left col--><!-- right col (We are only adding the ID to make the widgets sortable)-->
+        <section class="col-lg-5 connectedSortable" ng-controller="comments.duoshuo.newest" duoshuo-name=""><!-- Chat box-->
+            <div class="box">
+                <div class="box-header"><i class="fa fa-comments-o"></i>
+
+                    <h3 class="box-title">最新评论</h3>
+                </div>
+                <div id="chat-box" class="box-body chat"><!-- chat item-->
+                    <div class="item" ng-repeat="comment in comments">
+                        <img ng-src="{{comment.author.avatar_url}}" alt="user image" class="">
+                        <p class="message">
+                            <a ng-href="{{comment.author.url}}" class="name">
+                                <small class="text-muted pull-right"><i class="fa fa-clock-o"></i>{{comment.created_at|time:'hh:mm:ss'}}</small>
+                                {{comment.author.name}}
+                            </a>
+                            {{comment.replyTo && ("回复 "+ comment.replyTo +": ") }}{{comment.message}}
+                        </p>
+                    </div>
+                </div>
+                <!-- /.chat-->
+
+                <!-- /.box (chat box)-->
+            </div>
+        </section>
+        <!-- right col-->
+    </div>
+    <!-- /.row (main row)-->
+</div>
+
+<script src='/twenty/js/lib/jqueryKnob/jquery.knob.js' type='text/javascript'></script>
+<script>
+    $(".knob").knob();
+</script>

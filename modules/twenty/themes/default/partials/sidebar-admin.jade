@@ -1,0 +1,50 @@
+aside.left-side.sidebar-offcanvas
+    // sidebar: style can be found in sidebar.less
+    section.sidebar
+        div.logo
+            a(href='/')
+                img(src='/twenty/images/logo.png',alt='User Image')
+        .user-panel(styel)
+            .info
+                a Hello, {{user.name}}
+                a(href="/user/logout") 退出
+        // sidebar menu: : style can be found in sidebar.less
+        ul.sidebar-menu
+            li(ui-sref-active='active')
+                a(ui-sref='dashboard')
+                    i.fa.fa-dashboard
+                    span 控制台
+                    i.fa.fa-circle-o.pull-right
+            li.treeview(ui-sref-active='active')
+                a(ui-sref='posts')
+                    i.fa.fa-edit
+                    span 文章
+                    i.fa.fa-circle-o.pull-right
+            li.treeview(ui-sref-active='active')
+                a(ui-sref='categories')
+                    i.fa.fa-edit
+                    span 分类
+                    i.fa.fa-circle-o.pull-right
+            li.treeview(ui-sref-active='active')
+                a(ui-sref='comments')
+                    i.fa.fa-comment
+                    span 评论
+                    i.fa.fa-circle-o.pull-right
+            li.treeview(ui-sref-active='active')
+                a(ui-sref='statistics')
+                    i.fa.fa-bar-chart-o
+                    span 统计
+                    i.fa.fa.fa-circle-o.pull-right
+            li.treeview(ui-sref-active='active')
+                a(ui-sref='user')
+                    i.fa.fa-user
+                    span 账户
+                    i.fa.fa-circle-o.pull-right
+            li.treeview(ui-sref-active='active')
+                a(ui-sref='setting')
+                    i.fa.fa-cog
+                    span 设置
+                    i.fa.fa-circle-o.pull-right
+
+
+    // /.sidebar

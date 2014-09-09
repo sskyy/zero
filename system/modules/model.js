@@ -116,11 +116,13 @@ module.exports = {
         //add listen to this module
         //manually use module bus to add listeners
         extendListener(root)
-        console.log("[after extent listener]", root.listen)
+        console.log("[after extend listener]", root.listen)
         root.dep.bus.expand(root)
 
         resolve()
       });
+    }).fail("err",function(err){
+      console.log( "model fail=====", err)
     })
   }
 }

@@ -1,5 +1,6 @@
 module.exports = {
-  deps : ['theme'],
+  deps : ['theme','model','rest'],
+  models : require('./models'),
   theme : {
     directory : 'themes/default'
   }

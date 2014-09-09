@@ -1,0 +1,42 @@
+/* 
+    Page: register and login
+*/
+
+.form-box {    
+    width: 360px;
+    margin: 90px auto 0 auto;
+    .header {
+        .border-radius(4px, 4px, 0, 0);
+        padding: 20px 10px;
+        text-align: center;
+        font-size: 26px;
+        font-weight: 300;
+        color: #333;
+    }
+    
+     .body, .footer {
+        padding: 10px 20px;
+        color: #444;
+        > .form-group {
+            margin-top: 20px;
+            > input {
+            }
+        }
+        
+        > .btn {
+            margin-bottom: 10px;
+        }
+    }
+
+    input{
+        background: transparent;
+    }
+    
+    .footer {
+       .border-radius(0, 0, 4px, 4px);
+    }
+    
+    @media (max-width: @screen-sm) {
+    width: 90%;
+}
+}
