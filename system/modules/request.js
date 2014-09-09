@@ -67,12 +67,9 @@ function standardCallback(callback, bus, fnForEachReq) {
 }
 
 module.exports = {
-  dependencies: ['bus'],
+  deps: ['bus'],
   responds: [],
-  init: function (bus) {
-    console.log("[request init]")
-    this.bus = bus.bus
-  },
+  routes : [],
   expand: function (module) {
     var root = this
     //read route from data
@@ -93,10 +90,34 @@ module.exports = {
   //api
   add: function (callback, url, fnForEachReq) {
     var root = this,
-      route = standardRoute(url),
-      callback = standardCallback(callback, root.bus, fnForEachReq)
+      route = standardRoute(url)
 
+    route.callback = standardCallback(callback, root.dep.bus.bus, fnForEachReq)
+
+    //save it! other module may need
+    root.routes.push( route )
     console.log("[adding route]", route.url, route.method )
-    root.app.route(route.url)[route.method](callback)
+    root.app.route(route.url)[route.method](route.callback)
+  },
+  getRouteCallback : function( url, method ){
+    var root = this
+
+    var matchRouteIndex = _.findIndex(root.routes, function( route){
+
+      //1. check method
+      if( method && route.method !== 'all' && method !== route.method ) return false
+
+      //2. check url
+      return root.matchUrl( url, route.url)
+    })
+
+    return matchRouteIndex == -1 ? false : this.routes[matchRouteIndex].callback
+  },
+  matchUrl : function( url, wildcard ){
+    if( url == wildcard ) return true
+
+    var rex = wildcard.replace("*","(.*)").replace(/(^|\/):\w+(\/|$)/g, "$1([\\\\w_-]+)$2").replace(/\//g,"\\/")
+
+    return (new RegExt(rex) ).test(url)
   }
 }

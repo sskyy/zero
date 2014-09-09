@@ -10,11 +10,7 @@ var restMap = {
 }
 
 module.exports = {
-  dependencies : ['model','request'],
-  init : function(model, request){
-    this.request = request
-    this.model = model
-  },
+  deps : ['respond','model','request'],
   expand : function( module ){
     //read field `models`
     if( !module.models ) return
@@ -24,7 +20,7 @@ module.exports = {
     module.models.forEach( function( model){
       var modelName = model.identity
 
-      //add route for CRUD function
+      //1. add route for CRUD function
       _.forEach( restMap, function( requestMethod, instanceMethod  ){
           var url,
           event = modelName+'.'+instanceMethod
@@ -37,16 +33,30 @@ module.exports = {
 
         //add request handler to send model operation result to browser
         //TODO separate the respond handler from route would be better?
-        root.request.add( function restCallback( req, res){
+        root.dep.request.add( function restCallback( req, res, next){
 
           console.log("[REST] fire" , event , _.merge(req.params, req.body, req.query))
           req.bus.fire( event, _.merge(req.params, req.body, req.query) ).then( function(){
-            res.json( req.bus.data( modelName + "." + instanceMethod ))
+            //use respond module to help us respond
+            req.bus.data("respond", req.bus.data( modelName + "." + instanceMethod ))
+            next()
           })
-
         }, url)
       })
 
+
+      //2. add route for model action
+      root.dep.request.add( function restActionCallback( req, res, next){
+        //rest api handled already
+        if( req.bus.data('respond')) return next()
+
+        console.log("[REST] rest request handler take action", req.bus._id)
+        var action = req.param('action')
+        req.bus.fire( modelName + "." + req.param('action'), _.omit(_.merge(req.params, req.body, req.query),['action']))
+
+        //we will use default request handler for model actions
+        next()
+      }, 'POST /'+modelName + '/:action')
 
 
     })

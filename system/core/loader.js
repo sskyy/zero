@@ -31,25 +31,31 @@ function callInit( moduleName, from, cb ){
   console.log( "begin init", moduleName)
   from = from || []
   module.status = 'initializing'
-  module.dependencies = module.dependencies  || []
+  module.deps = module.deps  || []
 
-  if(_.intersection( module.dependencies, from).length !== 0){
+  if(_.intersection( module.deps, from).length !== 0){
     throw new Error("circular dependencies detected for ", from.join(','))
   }
 
-  async.eachSeries(module.dependencies, function( dependencyName, depCb){
+  async.eachSeries(module.deps, function( dependencyName, depCb){
     if( modules[dependencyName].status ) return depCb()
 
     //1. init all dependencies first
     callInit( dependencyName, from.concat[moduleName], depCb)
   }, function(){
 
-    //2. call init function of current module
-    var initResult = _.isFunction(module.init )?module.init.apply( module, module.dependencies.map(function(name){ return modules[name]})):true
+    //2.1 attach all dependencies to module
+    module.dep = {}
+    module.deps.forEach( function( name){
+      module.dep[name] = modules[name]
+    })
+
+    //2.2 call init function of current module
+    var initResult = _.isFunction(module.init )?module.init.apply( module, module.deps.map(function(name){ return modules[name]})):true
 
     q(initResult).then(function(){
       //3. call dependency's expand function to expand current module
-      async.map( module.dependencies, function( dependencyName, expandCb){
+      async.map( module.deps, function( dependencyName, expandCb){
         var dependency = modules[dependencyName],
           expandResult = dependency.expand ? dependency.expand.call( dependency, module) : true
 
@@ -74,7 +80,7 @@ exports.loadAll = function (opt, cb) {
 
   var systemModules = requireModules(opt.systemModulePath, opt.modules),
   userModules = _.mapValues(requireModules(opt.modulePath, opt.modules ),function(module){
-    module.dependencies = module.dependencies || Object.keys( systemModules )
+    module.deps = module.deps || Object.keys( systemModules )
     //TODO notice! we attached app to every module
     return module
   })

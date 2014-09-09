@@ -10,6 +10,12 @@ app.use(bodyParser.json())
 app.use(multer({ dest: './uploads/'}))
 app.use(session({secret: 'zero meant to be rise from the bottom'}))
 
+app.engine('jade', require('jade').__express);
+app.engine('html', require('ejs').renderFile);
+app.engine('ejs', require('ejs').renderFile);
+
+app.set('views', __dirname )
+
 
 
 //save express ref to app

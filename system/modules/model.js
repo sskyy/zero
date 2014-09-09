@@ -86,12 +86,9 @@ function cloneModels( models, bus ){
 }
 
 module.exports = {
-  dependencies: ['bus'],
+  deps : ['bus'],
   orm: new Waterline,
-  init: function (bus) {
-    this.bus = bus
-    this.models = {}
-  },
+  models : {},
   expand: function (module) {
     var root = this
     if (!module.models) return
@@ -120,7 +117,7 @@ module.exports = {
         //manually use module bus to add listeners
         extendListener(root)
         console.log("[after extent listener]", root.listen)
-        root.bus.expand(root)
+        root.dep.bus.expand(root)
 
         resolve()
       });
