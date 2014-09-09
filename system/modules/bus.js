@@ -6,7 +6,6 @@ module.exports = {
   expand : function( module ){
     var root = this
     if( module.listen ){
-//      root.bus.module( module.name )
       console.log("[bus expand]",module.name, module.listen)
       _.forEach(module.listen, function( listener, event){
         root.bus.module(module.name)

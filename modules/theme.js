@@ -54,6 +54,10 @@ function fill( length, initial ){
   return Array.apply(null, new Array(length)).map(function(){ return initial})
 }
 
+function findExtension( collection, exts, item){
+  return _.find( exts, function( ext ){ return collection[item+"."+ext]})
+}
+
 module.exports = {
   deps : ['request','statics','config','model'],
   config : {
@@ -86,40 +90,69 @@ module.exports = {
     console.log("[THEME] route",matchRoute)
 
     var reqHandler =  function( req, res, next ){
-      var restRoute = req.path.replace( matchRoute , ""),
-        cachePath = path.join( appUrl, themePath, restRoute),
+      var restRoute = {
+          url:req.path.replace( matchRoute , ""),
+          method : req.param('_method') || undefined
+        },
+        cachePath = path.join( appUrl, themePath, restRoute.url),
         extension
 
-      console.log(console.log("[THEME] handler",restRoute, cachePath) )
+      console.log(console.log("[THEME] handler",restRoute.url, cachePath) )
 
-      if( root.dep.model.models[restRoute.split("/")[0]] !== undefined ){
+      if( root.dep.model.models[restRoute.url.split("/")[0]] !== undefined ){
+        console.log("[THEME] find model match", restRoute)
+
         //1. check if current view route match any model api
-        root.dep.request.getRouteCallback( restRoute )( req, res, function(){})
+        root.dep.request.triggerRequest( "/"+restRoute.url, restRoute.method , req, res, function(){})
 
         //all done
         req.bus.then(function(){
-          res.render( path.join( themePath, restRoute, req.bus.data('respond')) )
+          console.log("[THEME]  model action done", restRoute.url)
+
+          //TODO find the right view file
+          var i, templateName, templatePath, tmp = restRoute.url.split("/")
+          for( i = tmp.length;i>0; i--){
+            templateName = tmp.slice(0,i).join('-')
+            templatePath = path.join( appUrl, themePath, templateName)
+            extension = findExtension(root.cache[module.name].page,root.config.engines,templatePath )
+            if( extension ) break;
+          }
+
+          if( extension ){
+            console.log("[THEME] find template", templateName, extension,req.bus.data('respond'))
+            res.render( path.join( themePath, templateName+'.'+extension), req.bus.data('respond'))
+          }else{
+            console.log("[THEME] can't find template", templateName, extension)
+            next()
+          }
+        }).fail(function(err){
+          console.log("err",err)
         })
 
-      }else if( extension = _.find( root.config.engines, function( e){ return root.cache[module.name].page[cachePath+"."+e] })){
+      }else if( extension = findExtension(root.cache[module.name].page,root.config.engines,cachePath )){
         //2. check if current view route match any page
-        if(  module.theme.locals && module.theme.locals[restRoute]){
-          if(_.isFunction(module.theme.locals[restRoute])){
-            module.theme.locals[restRoute]( req, res )
+        console.log("[THEME] find view page match", restRoute.url, extension)
+
+        if(  module.theme.locals && module.theme.locals[restRoute.url]){
+          if(_.isFunction(module.theme.locals[restRoute.url])){
+            module.theme.locals[restRoute.url]( req, res )
             req.bus.then(function(){
-              res.render( path.join( themePath, restRoute) + "." +extension, req.bus.data('respond') )
+              res.render( path.join( themePath, restRoute.url) + "." +extension, req.bus.data('respond') )
             })
           }else{
-            res.render( path.join( themePath, restRoute) + "." +extension, module.theme.locals[restRoute] )
+            res.render( path.join( themePath, restRoute.url) + "." +extension, module.theme.locals[restRoute.url] )
           }
         }else{
-          res.render( path.join( themePath, restRoute) + "." +extension,{})
+          res.render( path.join( themePath, restRoute.url) + "." +extension,{})
         }
 
       }else if( root.cache[module.name].statics[cachePath] ){
         //3. check if current view route match any static files
+        console.log("[THEME] find statics match", restRoute.url)
+
         res.sendFile( cachePath )
       }else{
+        console.log("[THEME] cannot find any match")
         next()
       }
     }

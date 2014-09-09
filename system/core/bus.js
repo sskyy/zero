@@ -138,7 +138,7 @@ Bus.prototype.data = function( name, data){
 
   if( !data ){
     var ref = getRef( this.$$data, name)
-    console.log("[BUS] getting data", name, this.$$data, ref)
+//    console.log("[BUS] getting data", name, this.$$data, ref)
     return _.isObject(ref)?_.cloneDeep(ref):ref
   }else{
     setRef( this.$$data, name, data)
@@ -180,7 +180,7 @@ function setRef( obj, name, data){
   //TODO better way?
   eval("obj."+name +"=data")
 
-  console.log("[BUS] setting done", name, obj)
+//  console.log("[BUS] setting done", name, obj)
 }
 
 Bus.prototype.module = function( name ){

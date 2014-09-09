@@ -99,25 +99,56 @@ module.exports = {
     console.log("[adding route]", route.url, route.method )
     root.app.route(route.url)[route.method](route.callback)
   },
-  getRouteCallback : function( url, method ){
-    var root = this
+  getRouteHandler : function( url, method ){
+    var root = this,
+      matchedParams,i
 
-    var matchRouteIndex = _.findIndex(root.routes, function( route){
+
+    for( i in root.routes){
 
       //1. check method
-      if( method && route.method !== 'all' && method !== route.method ) return false
+      if( method && root.routes[i].method !== 'all' && method !== root.routes[i].method ) return false
 
       //2. check url
-      return root.matchUrl( url, route.url)
-    })
+      matchedParams = root.matchUrl( url, root.routes[i].url)
+      if(  matchedParams ) break
+    }
 
-    return matchRouteIndex == -1 ? false : this.routes[matchRouteIndex].callback
+    return matchedParams ? _.extend({},root.routes[i],{params:matchedParams}) : false
+  },
+  triggerRequest : function( url, method, req, res, next ){
+    var root = this,
+      handler = root.getRouteHandler(url, method),
+      reqAgent = _.clone(req)
+
+    //fix params
+    reqAgent.params =  handler.params
+
+    //TODO fix path,baseURL, etc.
+    console.log("REQAGENT", reqAgent.params, reqAgent.body, reqAgent.query)
+    handler.callback( reqAgent, res, next )
   },
   matchUrl : function( url, wildcard ){
+
     if( url == wildcard ) return true
 
-    var rex = wildcard.replace("*","(.*)").replace(/(^|\/):\w+(\/|$)/g, "$1([\\\\w_-]+)$2").replace(/\//g,"\\/")
+    var keys = _.reduce( wildcard.split("/"), function( a,b){
+      var key
+      if( b == "*" ){
+        key = b
+      }else if( /^:/.test(b) ){
+        key = b.slice(1)
+      }
 
-    return (new RegExt(rex) ).test(url)
+      return a.concat( key?key:[] )
+    },[])
+
+    var rex = "^" + wildcard.replace("*","(.*)").replace(/(^|\/):\w+(\/|$)/g, "$1([\\w\\d_-]+)$2").replace(/\//g,"\\/") + "$"
+    var matches = url.match( new RegExp(rex))
+
+    console.log("MATCHING===URL:", url, "WILDCARD:",wildcard, "REX:",rex ,matches&&_.zipObject( keys, matches.slice(1)))
+
+    return matches ? _.zipObject( keys, matches.slice(1) ) : false
+
   }
 }
