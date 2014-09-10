@@ -4,8 +4,9 @@ module.exports = {
   expand : function( module ){
     var root = this
     if( module.statics ){
-      _.forEach( module.file, function( path, prefix){
-        root.app.use( prefix, root.app.express.static( path) )
+      _.forEach( module.statics, function( path, prefix){
+        console.log("[statics] expand:", prefix, path)
+        APP.use( prefix, APP.express.static( path) )
       })
     }
   }

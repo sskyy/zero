@@ -35,54 +35,51 @@ function extendListener(module) {
   module.listen = {}
 
   _.forEach( module.models, function( model, name){
+
     ['find', 'create', 'update', 'destroy','findOne'].forEach(function (method) {
 
-      module.listen[ name+'.'+method] = function (arg) {
-        console.log("on ", name, method, arg)
-        //this bus is a started forked bus or snapshot
-        var bus = this
+      module.listen[ name+'.'+method] ={
+        "name" : method + name[0].toUpperCase() + name.slice(1),
+        "function": function (arg) {
+          console.log("on ", name, method, arg)
+          //this bus is a started forked bus or snapshot
+          var bus = this
 
-        //we should use cloned orm model function, so inside the function we can trigger lifecycle callbacks
-        var clonedModels = cloneModels( module.models, bus )
+          //we should use cloned orm model function, so inside the function we can trigger lifecycle callbacks
+          var clonedModel = cloneModel(module.models[name], name, bus)
 
-        return clonedModels[name][method](arg).then( function( data){
-          bus.data( name+"."+ method , data)
-          return data
-        }).fail(function(err){
-          console.error("model err", err)
-          return bus.error(err)
-        })
+          return clonedModel[method](arg).then(function (data) {
+            bus.data(name + "." + method, data)
+            return data
+          }).fail(function (err) {
+            console.error("model err", err)
+            return bus.error(err)
+          })
+        }
       }
     })
   })
 }
 
-function cloneModels( models, bus ){
-  var cloned = {}
+function cloneModel( model,name, bus ){
 
-  _.forEach( models, function( model, name){
+  var clonedModel = _.clone( model )
+  clonedModel._callbacks = _.cloneDeep(model._callbacks)
 
-    var clonedModel = _.clone( model )
-    clonedModel.__proto__ = model
+  lifeCycleCallback.forEach( function( callbackName){
 
-    lifeCycleCallback.forEach( function( callbackName){
-
-      var transformCallbackName = callbackName.replace(/([a-z]+)([A-Z])([a-z]+)/,"$2$3.$1").toLowerCase()
-      clonedModel._callbacks[callbackName].push( function modelLifeCycleCallback( val,cb){
-        bus.fire( name+"."+transformCallbackName, val).then( function(){
-          console.log("======nothing happened", name, transformCallbackName)
-          cb()
-        }).fail(function(){
-          console.log("======error happened", name, transformCallbackName)
-          cb(name+"."+transformCallbackName + " failed" )
-        })
+    var transformCallbackName = callbackName.replace(/([a-z]+)([A-Z])([a-z]+)/,"$2$3.$1").toLowerCase()
+    clonedModel._callbacks[callbackName].push( function modelLifeCycleCallback( val,cb){
+      bus.fire( name+"."+transformCallbackName, val).then( function(){
+        cb()
+      }).fail(function(){
+        cb(name+"."+transformCallbackName + " failed" )
       })
-
     })
-
-    cloned[name] = clonedModel
   })
-  return cloned
+
+  clonedModel.__proto__ = model
+  return clonedModel
 }
 
 module.exports = {
@@ -109,7 +106,7 @@ module.exports = {
       root.orm.initialize(config, function (err, models) {
         if (err) return reject( err);
 
-        root.models = root.app.models = models.collections;
+        root.models  = models.collections;
         root.connections = models.connections;
 
 

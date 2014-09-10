@@ -21,6 +21,7 @@ function standardCallback(callback, bus, fnForEachReq) {
 
   return function (req, res, next) {
     //This is important!!! we attach forked bus to every request, so we can use bus to
+    console.log("***************setup bus**************",req.bus)
     req.bus = req.bus || bus.fork()
     req.bus._started || req.bus.start()
     req.bus.session = req.bus.session || req.session
@@ -97,17 +98,15 @@ module.exports = {
     //save it! other module may need
     root.routes.push( route )
     console.log("[adding route]", route.url, route.method )
-    root.app.route(route.url)[route.method](route.callback)
+    APP.route(route.url)[route.method](route.callback)
   },
   getRouteHandler : function( url, method ){
     var root = this,
       matchedParams,i
 
-
     for( i in root.routes){
-
       //1. check method
-      if( method && root.routes[i].method !== 'all' && method !== root.routes[i].method ) return false
+      if( method && root.routes[i].method !== 'all' && method !== root.routes[i].method ) continue
 
       //2. check url
       matchedParams = root.matchUrl( url, root.routes[i].url)
@@ -117,19 +116,20 @@ module.exports = {
     return matchedParams ? _.extend({},root.routes[i],{params:matchedParams}) : false
   },
   triggerRequest : function( url, method, req, res, next ){
+    console.log("[request] trigger request", url, method)
+
     var root = this,
       handler = root.getRouteHandler(url, method),
       reqAgent = _.clone(req)
 
     //fix params
-    reqAgent.params =  handler.params
+    reqAgent.params = _.isObject( handler.params ) ? handler.params : {}
 
     //TODO fix path,baseURL, etc.
     console.log("REQAGENT", reqAgent.params, reqAgent.body, reqAgent.query)
-    handler.callback( reqAgent, res, next )
+    if( handler ) handler.callback( reqAgent, res, next )
   },
   matchUrl : function( url, wildcard ){
-
     if( url == wildcard ) return true
 
     var keys = _.reduce( wildcard.split("/"), function( a,b){

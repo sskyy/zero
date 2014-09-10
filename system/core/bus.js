@@ -50,7 +50,7 @@ Bus.prototype.fork = function () {
   var root = this
 
   var newEmptyBust = {
-    _forked: true,
+    _fork: true,
     _origin :root,
     _fired : false,
     _snapshoted : 0
@@ -122,10 +122,10 @@ Bus.prototype.empty = function () {
 }
 
 Bus.prototype.setTracker = function () {
-
-  this.$$traceStack = []
   //set reference to root when start
-  this.$$traceRef = this.$$traceStack
+  this.$$traceRoot = {module:'global',name:'global',stack : []}
+  this.$$traceRef = this.$$traceRoot
+
 }
 
 Bus.prototype.data = function( name, data){
@@ -141,6 +141,10 @@ Bus.prototype.data = function( name, data){
 //    console.log("[BUS] getting data", name, this.$$data, ref)
     return _.isObject(ref)?_.cloneDeep(ref):ref
   }else{
+    if( this.opt.track){
+      this.$$traceRef.data = {}
+      setRef( this.$$traceRef.data, name, data)
+    }
     setRef( this.$$data, name, data)
     return data
   }
@@ -416,10 +420,11 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
     stack = appendChildListeners(stack)
   }
 
+  //save current reference
   currentRef = root.$$traceRef
   if (root.opt.track) {
     //if fire in a promise callback, set the ref to right one
-    root.$$traceRef.push({
+    root.$$traceRef.stack.push({
       "name": eventOrg,
       "attached": _.extend([], stack.map(function (i) {
         var n = _.extend({}, i, true)
@@ -441,7 +446,8 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
       var muteList = root.$$mute || root._mute
       if (muteList[listener.name] === undefined) {
         if (root.opt.track) {
-          root.$$traceRef = root.$$traceRef[root.$$traceRef.length - 1].attached[i].listeners[j].stack
+          root.$$traceRef = root.$$traceRef.stack[root.$$traceRef.stack.length - 1].attached[i].listeners[j]
+          root.$$traceRef.argv = _.cloneDeep(b.arguments.concat(args))
         }
 
         console.log("[BUS] appling :", eventOrg, listener.name,listener.module,b.arguments.concat(args))
@@ -450,7 +456,7 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
 
         if (root.opt.track) {
           if (root.$$traceRef !== currentRef) root.$$traceRef = currentRef
-          root.$$traceRef[root.$$traceRef.length - 1].attached[i].listeners[j].result = res
+          root.$$traceRef.stack[root.$$traceRef.stack.length - 1].attached[i].listeners[j].result = res
         }
 
         results[listener.name] = res
@@ -464,6 +470,7 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
     return true //continue loop
   })
 
+  //set it back
   if (root.opt.track)  root.$$traceRef = currentRef
 
   _.extend(root['$$results'], _.zipObject([eventOrg], [results]))
@@ -526,7 +533,6 @@ function extractPromiseOrErrorChildren(obj, resultContainer){
 
   _.forEach(obj, function( v, name ){
     if(Q.isPromise(v) ){
-      console.log("promise name", name)
       resultContainer.push( v )
 
     }else if(v instanceof BusError){

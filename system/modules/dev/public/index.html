@@ -1,0 +1,102 @@
+<html>
+<head>
+    <script src="./js/snap.svg-min.js"></script>
+    <script src="./js/jquery-2.1.0.min.js"></script>
+    <script src="./js/jquery.simple-color.min.js"></script>
+    <script src="./js/semantic.js"></script>
+    <script src="./js/angular.min.js"></script>
+    <link href="./css/simple-color.css" rel="stylesheet"/>
+    <link href="./css/semantic.css" rel="stylesheet"/>
+    <link href="./css/diagram.css" rel="stylesheet"/>
+    <link href="./css/main.css" rel="stylesheet"/>
+</head>
+<body ng-app="dev">
+
+
+<h1 class="ui header">ZERO Framework Dev Tool   V0.0.1</h1>
+<div class="ui form" ng-controller="main">
+    <div class="inline fields">
+        <div class="field">
+            <input type="text" id="url" placeholder="url" ng-model="url">
+        </div>
+        <div class="field">
+            <div class="ui selection dropdown">
+                <input type="hidden" name="method" id="method" ng-model="method">
+                <div class="default text">GET</div>
+                <i class="dropdown icon"></i>
+                <div class="menu">
+                    <div class="item" data-value="get" ng-click="method='get'">GET</div>
+                    <div class="item" data-value="post" ng-click="method='post'">POST</div>
+                    <div class="item" data-value="put" ng-click="method='put'">PUT</div>
+                    <div class="item" data-value="delete" ng-click="method='delete'">DELETE</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="inline fields" ng-repeat="(k,v) in data">
+        <div class="field">
+            <input type="text" value="{{k}}">
+        </div>
+        <div class="field">
+            <input type="text" value="{{v}}">
+        </div>
+        <div class="field">
+            <div class='ui button'  ng-click="deleteData(k)">-</div>
+        </div>
+    </div>
+    <div class="inline fields">
+        <div class="field">
+            <input type="text" ng-model="newDataKey">
+        </div>
+        <div class="field">
+            <input type="text" ng-model="newDataValue">
+        </div>
+        <div class="field">
+            <div class='ui button'  ng-click="addData()">+</div>
+        </div>
+    </div>
+    <div class="inline fields">
+        <div class="field">
+            <div class='ui button' id="getDiagram" ng-click="send()">SEND</div>
+        </div>
+    </div>
+</div>
+
+<div id="moduleSwitches"></div>
+
+<svg id="diagram"></svg>
+
+<div class="ui modal" id="descDialog">
+    <i class="close icon"></i>
+    <div class="header">描述</div>
+    <div class="content ui form">
+        <div class="inline fields">
+            <div class="field">
+                <input style="width: 500px" type="text" id="descInput" name="desc">
+            </div>
+            <div class="field">
+                <div class="ui button" id="doneDialog">OK</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="./js/paint.js"></script>
+<script src="./js/main.js"></script>
+<script>
+    $('.ui.dropdown').dropdown()
+    $('.ui.modal').modal()
+</script>
+
+
+<svg id="diagram2"></svg>
+
+<script>
+
+</script>
+
+</body>
+</html>

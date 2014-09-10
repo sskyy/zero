@@ -16,10 +16,10 @@ app.engine('ejs', require('ejs').renderFile);
 
 app.set('views', __dirname )
 
-
-
 //save express ref to app
 app.express = express
+
+global['APP'] = app
 
 require('./system/core/bootstrap')(app,{}, function(){
   console.log("==============================================")

@@ -1,0 +1,21 @@
+body{
+    padding: 0 10px;
+    font-family: "Open Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif/*rtl:prepend:"Droid Arabic Kufi","Droid Sans", */;
+}
+
+#moduleSwitches{
+    margin-top: 10px;;
+}
+.switch {
+    display: inline-block;
+    height: 30px;
+    margin-right: 20px;
+    line-height: 30px;
+    cursor: pointer;
+}
+
+/*hack for semantic css*/
+.ui.form .inline.fields .field > input, .ui.form .inline.field > input {
+    font-size: 1em;
+    line-height: 1.33;
+}

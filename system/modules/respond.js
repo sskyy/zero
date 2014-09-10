@@ -12,7 +12,7 @@ module.exports = {
       //bus never fired and not request handler take action, we send 404
       if( !req.bus._fired ){
         console.log("[RESPOND] NOTHING HAPPENED")
-        res.status(404).end()
+        res.status(404).send("404")
       }else{
         //must wait all result resolved!
         req.bus.then(function(){

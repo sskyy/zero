@@ -1,0 +1,25 @@
+.simpleColorContainer{
+    display: inline-block;
+    height: 14px;
+    width: 14px;
+    margin-right: 6px;
+}
+.simpleColorChooser{
+    z-index: 9999;
+    border: 1px solid #fff;
+    width: 198px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    padding: 4px;
+    z-index: 515;
+    -webkit-box-shadow: 0 0 10px rgba(50,50,50,0.5);
+    -moz-box-shadow: 0 0 10px rgba(50,50,50,0.5);
+    box-shadow: 0 0 10px rgba(50,50,50,0.5);
+}
+.simpleColorCell{
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+}

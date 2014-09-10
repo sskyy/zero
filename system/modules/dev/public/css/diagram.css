@@ -1,0 +1,25 @@
+line{
+    stroke :rgb(99,99,99);
+    stroke-width :2
+}
+text{
+    line-height: 30px;
+    alignment-baseline: hanging;
+    font-size: 16px;
+}
+text.match{
+    stroke:#ccc;
+    stroke-width:1px;
+}
+text.args{
+    stroke:#ccc;
+    stroke-width:1px;
+}
+text.module-ref{
+    cursor: pointer;
+}
+svg{
+    margin-top: 20px;
+}
+
+
