@@ -17,7 +17,6 @@ module.exports =  {
 
       req.body = data
 
-      console.log("----------------------",req.bus.$$traceRoot)
       request.triggerRequest( url, method , req, res, function(){})
 
       //all done
