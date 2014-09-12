@@ -114,7 +114,7 @@ module.exports = {
         //add listen to this module
         //manually use module bus to add listeners
         extendListener(root)
-        console.log("[after extend listener]", root.listen)
+//        console.log("[after extend listener]", root.listen)
         root.dep.bus.expand(root)
 
         resolve()

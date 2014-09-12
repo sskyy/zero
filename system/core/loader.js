@@ -47,7 +47,7 @@ function callInit( moduleName, from, cb ){
     //2.1 attach all dependencies to module
     module.dep = {}
     module.deps.forEach( function( name){
-      module.dep[name] = modules[name]
+      module.dep[name] = _.extend(_.clone(modules[name]),{relier:moduleName})
     })
 
     //2.2 call init function of current module

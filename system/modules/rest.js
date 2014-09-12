@@ -18,6 +18,8 @@ module.exports = {
     var root = this
 
     module.models.forEach( function( model){
+      if( !model.rest ) return
+
       var modelName = model.identity
 
       //1. add route for CRUD function
@@ -33,20 +35,21 @@ module.exports = {
 
         //add request handler to send model operation result to browser
         //TODO separate the respond handler from route would be better?
-        root.dep.request.add( function restCallback( req, res, next){
+        root.dep.request.add( url, function restCallback( req, res, next){
 
-          console.log("[REST] fire" , event , _.merge(req.params, req.body, req.query))
+          console.log("[REST] fire" , event ,req.params, _.merge(req.params, req.body, req.query))
           req.bus.fire( event, _.merge(req.params, req.body, req.query) ).then( function(){
             //use respond module to help us respond
             req.bus.data("respond", req.bus.data( modelName + "." + instanceMethod ))
             next()
           })
-        }, url)
+        })
       })
 
 
       //2. add route for model action
-      root.dep.request.add( function restActionCallback( req, res, next){
+      console.log("+++++++++++++++callling add!!!!!")
+      root.dep.request.add('POST /'+modelName + '/:action', function restActionCallback( req, res, next){
         //rest api handled already
         if( req.bus.data('respond')) return next()
 
@@ -56,11 +59,7 @@ module.exports = {
 
         //we will use default request handler for model actions
         next()
-      }, 'POST /'+modelName + '/:action')
-
-
+      })
     })
-
-
   }
 }

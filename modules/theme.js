@@ -157,7 +157,7 @@ module.exports = {
       }
     }
 
-    root.dep.request.add( reqHandler, matchRoute + "*" )
+    root.dep.request.add( matchRoute + "*",reqHandler )
   }
 }
 

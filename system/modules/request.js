@@ -1,14 +1,15 @@
 var _ = require('lodash'),
-  q = require('q')
+  q = require('q'),
+  orderedCollection = require('../core/orderedCollection')
 
 function standardRoute(url) {
   var result = { url: null, method: null}
 
-
-  if (/\S+\s+\S+/.test(url)) {
+  if (/\S+\s+\/\w+/.test(url)) {
     var urlArray = url.split(/\s+/)
     result.method = urlArray[0].toLowerCase()
     result.url = urlArray[1]
+
   } else {
     result.method = 'all'
     result.url = url
@@ -52,7 +53,7 @@ function standardCallback(callback, bus, fnForEachReq) {
       }), req.params)
 
       //resolve all params first
-      q.allSettled(_.values(params)).then(function () {
+      q.all(_.values(params)).then(function () {
         req.bus.fire(callback.event, _.mapValues(params, function (param) {
           return q.isPromise(param) ? param.value : param
         }))
@@ -66,67 +67,95 @@ function standardCallback(callback, bus, fnForEachReq) {
 
 }
 
+
 module.exports = {
   deps: ['bus'],
   responds: [],
-  routes : [],
+  routes : new orderedCollection,
   expand: function (module) {
     var root = this
     //read route from data
-    console.log("[request expand]", module.name, module.route, module.status)
     _.forEach( module.route, function( handler, url ){
-      root.add( handler, url)
+      if(_.isFunction( handler)){
+        handler = {"function":handler, module:module.name}
+      }else if(_.isObject(handler)&&!handler.module){
+        handler.module = module.name
+      }
+      handler.name = handler.module+(handler.function.name ? "." + handler.function.name : '')
+      root.add( url, handler)
+      console.log("[request expand]", module.name, url, handler.name, handler.function)
     })
   },
   bootstrap: function () {
     //read respond
     var root = this
 
-    root.responds.forEach(function (respond) {
-      _.mapValues(respond, root.add.bind(root))
+    root.routes.forEach(function ( route ) {
+      console.log("==========",JSON.stringify(route, null,4))
+      APP.route(route.url)[route.method](route.handler.function)
     })
-
   },
   //api
-  add: function (callback, url, fnForEachReq) {
+  add: function ( url, handler, order ) {
     var root = this,
       route = standardRoute(url)
 
-    route.callback = standardCallback(callback, root.dep.bus.bus, fnForEachReq)
+    if(_.isFunction( handler)){
+      handler = {"function":handler, module:module.name||root.relier,order:order}
+    }else if(_.isObject(handler)){
+      handler.module = handler.module || root.relier
+      handler.order = handler.order || order
+    }
+    handler.name = handler.name || (handler.module+(handler.function.name ? ("." + handler.function.name) : '') )
+
+
+    route.handler = handler
+    handler.function = standardCallback( handler.function, root.dep.bus.bus )
 
     //save it! other module may need
-    root.routes.push( route )
+    root.routes.push( route, route.handler.name,  route.handler.order  )
     console.log("[adding route]", route.url, route.method )
-    APP.route(route.url)[route.method](route.callback)
   },
-  getRouteHandler : function( url, method ){
+  getRouteHandlers : function( url, method ){
     var root = this,
-      matchedParams,i
+      matchedParams,
+      handlers = []
 
-    for( i in root.routes){
-      //1. check method
-      if( method && root.routes[i].method !== 'all' && method !== root.routes[i].method ) continue
+    root.routes.forEach( function( route ){
+      if( method && route.method !== 'all' && method !== route.method ) return
 
-      //2. check url
-      matchedParams = root.matchUrl( url, root.routes[i].url)
-      if(  matchedParams ) break
-    }
+      matchedParams = root.matchUrl( url, route.url)
+      if( matchedParams ){
+        handlers.push(_.extend({}, route.handler, {params:matchedParams}))
+      }
+    })
 
-    return matchedParams ? _.extend({},root.routes[i],{params:matchedParams}) : false
+    return handlers
   },
-  triggerRequest : function( url, method, req, res, next ){
+  triggerRequest : function( url, method, req, res ){
     console.log("[request] trigger request", url, method)
 
     var root = this,
-      handler = root.getRouteHandler(url, method),
+      handlers = root.getRouteHandlers(url, method),
       reqAgent = _.clone(req)
 
-    //fix params
-    reqAgent.params = _.isObject( handler.params ) ? handler.params : {}
 
-    //TODO fix path,baseURL, etc.
-    console.log("REQAGENT", reqAgent.params, reqAgent.body, reqAgent.query)
-    if( handler ) handler.callback( reqAgent, res, next )
+    handlers.forEach(function(handler){
+      //fix params
+
+      //TODO fix path,baseURL, etc.
+      console.log("REQ AGENT", reqAgent.params, reqAgent.body, reqAgent.query)
+      handler.function(reqAgent, res, next )
+    })
+
+    triggerHandler(0)
+
+    function triggerHandler(i){
+      if( !handlers[i]) return
+
+      reqAgent.params = _.isObject( handlers[i].params ) ? handlers[i].params : {}
+      handlers[i].function( req,res, _.partial(triggerHandler,++i))
+    }
   },
   matchUrl : function( url, wildcard ){
     if( url == wildcard ) return true

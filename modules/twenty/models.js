@@ -17,4 +17,16 @@ module.exports = [{
   },
   isIndex : true,
   rest : true
+},{
+  identity : 'picture',
+  connection : 'myLocalDisk',
+  attributes : {
+    'name' : 'string',
+    'originalname' : 'string',
+    'mimetype' : 'string',
+    'extension' : 'string',
+    'size' : 'int'
+  },
+  isFile : true,
+  rest : true
 }]

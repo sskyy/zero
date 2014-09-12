@@ -8,6 +8,7 @@ module.exports = function( app, opt, cb ){
     try{
       var strap = _.reduce(app.modules,function(a, b){
 
+        console.log("[bootstrap] ", b.name)
         //when every module is initialized, call their bootstrap function
         var bootstrapResult = _.isFunction(b.bootstrap) ? b.bootstrap.call(b) : []
 

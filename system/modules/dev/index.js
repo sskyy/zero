@@ -17,7 +17,7 @@ module.exports =  {
 
       req.body = data
 
-      request.triggerRequest( url, method , req, res, function(){})
+      request.triggerRequest( url, method , req, res)
 
       //all done
       req.bus.then(function(){
