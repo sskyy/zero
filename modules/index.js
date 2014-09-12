@@ -180,7 +180,6 @@ module.exports = {
       }
     })
     root.dep.bus.expand(root)
-    console.log("[index] after bus expand", JSON.stringify( root.dep.bus.bus._events, null, 4))
 
   }
 }

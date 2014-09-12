@@ -1,5 +1,5 @@
 var agent = require('webkit-devtools-agent');
-agent.start()
+//agent.start()
 
 var express = require('express'),
   app = express(),

@@ -386,7 +386,7 @@ function appendChildListeners(stack) {
  */
 Bus.prototype.fire = function (eventOrg, args, opt) {
 
-  console.log("[BUS] firing :", eventOrg, args, 'bus id:', this._id)
+  console.log("[BUS] firing :", eventOrg, 'bus id:', this._id)
   if (!this._started) {
     console.log("[BUS] not started!")
     return false
@@ -450,7 +450,7 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
           root.$$traceRef.argv = _.cloneDeep(b.arguments.concat(args))
         }
 
-        console.log("[BUS] appling :", eventOrg, listener.name,listener.module,b.arguments.concat(args))
+        console.log("[BUS] appling :", eventOrg, listener.name,listener.module)
 
         var res = listener.function.apply(root.snapshot(), b.arguments.concat(args))
 
@@ -574,7 +574,6 @@ Bus.prototype.then = function(cb){
   var root = this
 
   return nestedBusPromise( root['$$results'] ).then(function( values ){
-     console.log("root['$$results']",root['$$results'])
      return cb.call( root, extractPromiseValue( values ) )
   })
 }
