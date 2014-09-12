@@ -167,7 +167,7 @@ function getRef( obj, name ){
 }
 
 function setRef( obj, name, data){
-  console.log( "[BUS] setting data", name, data)
+//  console.log( "[BUS] setting data", name, data)
 
   var ns = name.split('.'),
     ref = obj,

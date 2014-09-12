@@ -16,7 +16,8 @@ module.exports = {
       }else{
         //must wait all result resolved!
         req.bus.then(function(){
-          console.log("[RESPOND] success respond", req.bus.data('respond'))
+//          console.log("[RESPOND] success respond", req.bus.data('respond'))
+          console.log("[RESPOND] success respond")
           console.log( req.bus.error()[0] )
           res.json( req.bus.data('respond'))
         }).fail( function(err) {

@@ -46,7 +46,7 @@ function extendListener(module) {
           var bus = this
 
           //we should use cloned orm model function, so inside the function we can trigger lifecycle callbacks
-          var clonedModel = cloneModel(module.models[name], name, bus)
+          var clonedModel = cloneModel(module.models[name], name, bus.snapshot())
 
           return clonedModel[method](arg).then(function (data) {
             bus.data(name + "." + method, data)
@@ -68,11 +68,12 @@ function cloneModel( model,name, bus ){
 
   lifeCycleCallback.forEach( function( callbackName){
 
-    var transformCallbackName = callbackName.replace(/([a-z]+)([A-Z])([a-z]+)/,"$2$3.$1").toLowerCase()
     clonedModel._callbacks[callbackName].push( function modelLifeCycleCallback( val,cb){
+      var transformCallbackName = callbackName.replace(/([a-z]+)([A-Z])([a-z]+)/,"$2$3.$1").toLowerCase()
       bus.fire( name+"."+transformCallbackName, val).then( function(){
         cb()
-      }).fail(function(){
+      }).fail(function(err){
+        console.log("LIFE CYCLE CALLBACK FAILED",err)
         cb(name+"."+transformCallbackName + " failed" )
       })
     })
@@ -106,7 +107,7 @@ module.exports = {
       root.orm.initialize(config, function (err, models) {
         if (err) return reject( err);
 
-        root.models  = models.collections;
+        _.extend( root.models , models.collections )
         root.connections = models.connections;
 
 
