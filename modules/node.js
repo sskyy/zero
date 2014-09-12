@@ -5,7 +5,6 @@ module.exports = {
     if( module.models ){
       module.models.forEach(  function( model){
         if( model.isNode ){
-gi
         }
       })
     }
