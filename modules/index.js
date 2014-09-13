@@ -2,12 +2,10 @@ var _ = require('lodash'),
   q = require('q')
 
 var nodes = {},
-  indexes = {},
-  nodeIndexMap = {},
-  allIndex = []
+  indexes = {}
 
 function generateBeforeCreateCallback(indexName, nodeName, models) {
-  return function (val) {
+  return function handlerIndexBeforeNodeCreate(val) {
 
     if (!val[indexName]) return
 
@@ -62,7 +60,7 @@ function generateBeforeCreateCallback(indexName, nodeName, models) {
 
 function generateAfterCreateCallback(indexName, nodeName, models) {
 
-  return function (val) {
+  return function handlerIndexAfterNodeCreate(val) {
     console.log( "[index] after create node")
 
     if (!val[indexName]) return
@@ -83,7 +81,7 @@ function generateAfterCreateCallback(indexName, nodeName, models) {
 }
 
 function generateBeforeUpdateCallback(indexName,nodeName, models) {
-  return function (val) {
+  return function handlerIndexBeforeNodeUpdate(val) {
     console.log( "[index] after create node")
 
     if (!val[indexName]) return

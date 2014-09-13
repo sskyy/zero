@@ -1,6 +1,8 @@
 body{
-    padding: 0 10px;
+    padding: 0;
+    margin: 0;
     font-family: "Open Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif/*rtl:prepend:"Droid Arabic Kufi","Droid Sans", */;
+    background: #efefef;
 }
 
 #moduleSwitches{
@@ -14,8 +16,20 @@ body{
     cursor: pointer;
 }
 
+#diagramContainer{
+    width: 100%;
+    box-sizing: border-box;
+    padding: 30px;
+    overflow-x: auto;
+    background: #ffffff;
+}
+
 /*hack for semantic css*/
 .ui.form .inline.fields .field > input, .ui.form .inline.field > input {
     font-size: 1em;
     line-height: 1.33;
+}
+
+.pd10{
+    padding: 10px;
 }

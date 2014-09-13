@@ -83,7 +83,7 @@ module.exports = {
       }
       handler.name = handler.module+(handler.function.name ? "." + handler.function.name : '')
       root.add( url, handler)
-      console.log("[request expand]", module.name, url, handler.name, handler.function)
+      console.log("[request expand]", module.name, url, handler.name)
     })
   },
   bootstrap: function () {
@@ -91,7 +91,6 @@ module.exports = {
     var root = this
 
     root.routes.forEach(function ( route ) {
-      console.log("==========",JSON.stringify(route, null,4))
       APP.route(route.url)[route.method](route.handler.function)
     })
   },
@@ -139,14 +138,6 @@ module.exports = {
       handlers = root.getRouteHandlers(url, method),
       reqAgent = _.clone(req)
 
-
-    handlers.forEach(function(handler){
-      //fix params
-
-      //TODO fix path,baseURL, etc.
-      console.log("REQ AGENT", reqAgent.params, reqAgent.body, reqAgent.query)
-      handler.function(reqAgent, res, next )
-    })
 
     triggerHandler(0)
 

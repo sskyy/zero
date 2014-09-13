@@ -5,21 +5,32 @@ var PADDING = 30,
   FNHEIGHT = 30,
   TEXT_FIX = 10,
   THEIGHT=10,
-  FILL = 'lightsteelblue',
+  FILL = 'rgb(153, 204, 255)',
+  DATAFILL = 'rgb(255, 102, 102)'
   moduleRef = {}, //will collect the el ref for each module
   fnDescRef = {} //will collect description of function
 
+
+function createTriangle( attr ){
+  attr = attr || {}
+  _.defaults(attr,{
+    points : "0,0 100,0 50,100"
+  })
+  return createSVGElement('polygon',attr)
+}
 
 function createSVGElement( e,attr){
   var $el = Snap( document.createElementNS('http://www.w3.org/2000/svg', e) )
   return attr ? $el.attr(attr) : $el
 }
 
+
 function createSVGText( text ){
   var $text = createSVGElement('text');
   $text.node.innerHTML=text;
   Snap('svg').append($text);
   $text.data('width',$text.getBBox().width);
+  $text.data('height',$text.getBBox().height);
   return $text.remove()
 }
 
@@ -29,16 +40,132 @@ function createFnRect($t,attr){
     $r = createSVGElement('rect', $.extend({
       x:0,
       y:0,
+      width : $t.data('width')+PADDING,
+      height : FNHEIGHT,
       fill:FILL
     },attr))
 
-  $t.attr({x:PADDING/2,y:TEXT_FIX})
+  $t.attr({x:PADDING/2,y: (FNHEIGHT-$t.data('height'))/2})
+
+  return $g.append( $r).append($t)
+}
+
+function createDataRect($t,attr){
+  var $g = createSVGElement('g').attr('class','fnRect'),
+    $r = createSVGElement('rect', $.extend({
+      x:0,
+      y:0,
+      width:$t.data('width')+4,
+      height:$t.data('height')+4,
+      fill:DATAFILL
+    },attr))
+
+  $t.attr({x:2,y: 2})
 
   return $g.append( $r).append($t)
 }
 
 function tranStr( obj ){
   return 'translate('+obj.x+','+obj.y+')'
+}
+
+
+
+function createListener( listener, namespace ){
+  var $g = createSVGElement('g'),
+    $attaches = createSVGElement('g'),
+    $name = createSVGText(listener.vendor ? listener.name + '('+listener.vendor+')' : listener.name),
+    $dataText = createSVGText('data'),
+    fnTextWidth = $name.data('width') + PADDING,
+    fnWidth,$fn,$data
+
+  if( listener.data ){
+    $data = createDataRect( $dataText ).appendTo($g)
+    fnTextWidth += $dataText.data('width')
+  }
+
+  var attachWidth = 0,
+    maxHeight = 0
+
+  //render every event fire in this listener
+  listener.stack.forEach(function( attach ){
+    var $attach = createAttach( attach )
+    $attach.transform( tranStr({x:attachWidth,y:FNHEIGHT}))
+
+    attachWidth += $attach.data('width')
+
+    if( $attach.data('height') > maxHeight ) maxHeight = $attach.data('height')
+
+    $attach.appendTo($attaches )
+  })
+
+  $attaches.appendTo( $g)
+
+
+  fnWidth = attachWidth> fnTextWidth ? attachWidth : fnTextWidth
+  $fn = createFnRect( $name ,{width:fnWidth}).appendTo($g)
+
+  if( listener.data ) {
+//    $data.transform( tranStr({x:$name.data('width')+PADDING,y: (FNHEIGHT -$dataText.data('height'))/2-2})).appendTo($g)
+  }
+
+    //collect moduleRef
+  if( !moduleRef[listener.module] ) moduleRef[listener.module] = []
+  moduleRef[listener.module].push($fn)
+  if( listener.vendor && !moduleRef[listener.vendor] ) moduleRef[listener.vendor] = []
+  listener.vendor && moduleRef[listener.vendor].push($fn)
+
+  //collect fnDescRef
+  var fnId = getFnId(namespace, listener.name)
+  fnDescRef[fnId] = {node:$fn}
+
+  //store data for desc dialog
+  $fn.data('fnId',fnId)
+
+  $g.data('width',fnWidth).data('height',FNHEIGHT+maxHeight)
+  return $g
+}
+
+function getFnId( namespace, name ){
+  return [namespace, name].join('->')
+}
+
+function createAttach( attach ){
+  var $g = createSVGElement('g'),
+    $name = createSVGText(attach.name),
+    $eLine = createSVGElement('line'),
+    $triangle = createTriangle(),
+    nameWidth = $name.data('width') + PADDING
+
+
+  var height = PADDING,
+    maxWidth = nameWidth,
+    lastHeight = 0
+
+  attach.attached.forEach( function( listenersG,i ){
+    var $listenersG = createListenersG( listenersG.namespace, listenersG.arguments, listenersG.listeners)
+
+    $listenersG.transform(tranStr({x:nameWidth,y:height}))
+
+    height += $listenersG.data('height')
+    if( i!== attach.attached.length -1) height+=PADDING
+
+    if( i == attach.attached.length -1 ) lastHeight = $listenersG.data('height')
+
+    if( $listenersG.data('width') > maxWidth ) maxWidth = $listenersG.data('width')
+
+    $listenersG.appendTo( $g )
+  })
+
+  if( attach.attached.length ){
+    $eLine.attr({x1:nameWidth,x2:nameWidth,y1:0,y2:height-lastHeight+FNHEIGHT/2+1}).appendTo($g)
+    $triangle.attr({points: [ nameWidth-5 + ",0", nameWidth+5 + ",0", nameWidth + ",7"].join(' ')}).appendTo( $g)
+  }
+
+  $name.attr({x:PADDING/2,y:TEXT_FIX}).attr('class','event').appendTo($g)
+
+  $g.data('width',maxWidth+nameWidth).data('height',height)
+  return $g
 }
 
 function createListenersG( name, args, listeners ){
@@ -68,7 +195,10 @@ function createListenersG( name, args, listeners ){
 
     if( i==listeners.length -1) lastHeight = $l.data('height')
 
+
     $l.appendTo( $listeners )
+    console.log( "creating listener", l.name, $listeners, i)
+
   })
 
   $listeners.data('width',maxWidth).data('height',height).appendTo( $g)
@@ -81,93 +211,9 @@ function createListenersG( name, args, listeners ){
   $args.attr({x:-PADDING/2-$args.data('width'),y:FNHEIGHT/2 + THEIGHT+4 }).attr('class','args').appendTo($g)
 
   $g.data('width',PADDING+maxWidth).data('height',height)
+  console.log("listener group", $g)
   return $g
 }
-
-function createListener( listener, namespace ){
-  var $g = createSVGElement('g'),
-    $attaches = createSVGElement('g'),
-    $name = createSVGText(listener.vendor ? listener.name + '('+listener.vendor+')' : listener.name),
-    fnWidth,$fn
-
-  var width = 0,
-    maxHeight = 0
-
-  //render child
-  listener.stack.forEach(function( attach ){
-    var $attach = createAttach( attach )
-    $attach.transform( tranStr({x:width,y:FNHEIGHT}))
-
-    width += $attach.data('width')
-
-    if( $attach.data('height') > maxHeight ) maxHeight = $attach.data('height')
-
-    $attach.appendTo($attaches )
-  })
-
-  $attaches.appendTo( $g)
-  fnWidth = width>$name.data('width')+PADDING?width:$name.data('width')+PADDING
-  $fn = createFnRect( $name,{width:fnWidth,height:FNHEIGHT}).appendTo($g)
-
-  //collect moduleRef
-  if( !moduleRef[listener.module] ) moduleRef[listener.module] = []
-  moduleRef[listener.module].push($fn)
-  if( listener.vendor && !moduleRef[listener.vendor] ) moduleRef[listener.vendor] = []
-  listener.vendor && moduleRef[listener.vendor].push($fn)
-
-  //collect fnDescRef
-  var fnId = getFnId(namespace, listener.name)
-  fnDescRef[fnId] = {node:$fn}
-
-  //store data for desc dialog
-  $fn.data('fnId',fnId)
-
-
-  $g.data('width',fnWidth).data('height',FNHEIGHT+maxHeight)
-  return $g
-}
-
-function getFnId( namespace, name ){
-  return [namespace, name].join('->')
-}
-
-function createAttach( attach ){
-  var $g = createSVGElement('g'),
-    $name = createSVGText(attach.name),
-    $eLine = createSVGElement('line'),
-    nameWidth = $name.data('width') + PADDING
-
-
-  var height = PADDING,
-    maxWidth = nameWidth,
-    lastHeight = 0
-
-  attach.attached.forEach( function( listenersG,i ){
-    var $listenersG = createListenersG( listenersG.namespace, listenersG.arguments, listenersG.listeners)
-
-    $listenersG.transform(tranStr({x:nameWidth,y:height}))
-
-    height += $listenersG.data('height')
-    if( i!== attach.attached.length -1) height+=PADDING
-
-    if( i == attach.attached.length -1 ) lastHeight = $listenersG.data('height')
-
-    if( $listenersG.data('width') > maxWidth ) maxWidth = $listenersG.data('width')
-
-    $listenersG.appendTo( $g )
-  })
-
-  if( attach.attached.length ){
-    $eLine.attr({x1:nameWidth,x2:nameWidth,y1:0,y2:height-lastHeight+FNHEIGHT/2+1}).appendTo($g)
-  }
-
-  $name.attr({x:PADDING/2,y:TEXT_FIX}).attr('class','event').appendTo($g)
-
-  $g.data('width',maxWidth+nameWidth).data('height',height)
-  return $g
-}
-
-
 
 
 /**
@@ -189,7 +235,7 @@ $(function(){
     var $svg = Snap(diagramSelector),
       $diagram = createListener(data)
 
-    $svg.append($diagram).attr('width', $diagram.data('width') + 100)
+    $svg.append($diagram).attr('width', $diagram.data('width') + 50).attr('height',$diagram.data('height') + 80)
     createModuleSwitch()
   }
 
@@ -203,7 +249,6 @@ $(function(){
 
     for (var name in moduleRef) {
       (function (name) {
-//        var $switch = $("<div class='switch'><a class='colorPicker'></a><span>"+name+"</span></div>")
         var $switch = $("<div class='switch'></div>")
           .append("<input class='"+colorPickerSelector.substr(1)+"'/>")
           .append("<span>"+name+"</span>")

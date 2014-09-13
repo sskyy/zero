@@ -5,16 +5,22 @@
     <script src="./js/jquery.simple-color.min.js"></script>
     <script src="./js/semantic.js"></script>
     <script src="./js/angular.min.js"></script>
+    <script src="./js/lodash.compat.min.js"></script>
     <link href="./css/simple-color.css" rel="stylesheet"/>
     <link href="./css/semantic.css" rel="stylesheet"/>
     <link href="./css/diagram.css" rel="stylesheet"/>
     <link href="./css/main.css" rel="stylesheet"/>
 </head>
 <body ng-app="dev">
+<div class="ui fixed transparent inverted main menu">
+    <div class="container">
+        <div class="title item">
+            <b>Zerojs </b> dev tool
+        </div>
+    </div>
+</div>
 
-
-<h1 class="ui header">ZERO Framework Dev Tool   V0.0.1</h1>
-<div class="ui form" ng-controller="main">
+<div class="ui form pd10" style="padding-top: 80px;" ng-controller="main">
     <div class="inline fields">
         <div class="field">
             <input type="text" id="url" placeholder="url" ng-model="url">
@@ -63,9 +69,12 @@
     </div>
 </div>
 
-<div id="moduleSwitches"></div>
+<div id="moduleSwitches" class="pd10"></div>
 
-<svg id="diagram"></svg>
+<div id="diagramContainer">
+    <svg id="diagram"></svg>
+</div>
+
 
 <div class="ui modal" id="descDialog">
     <i class="close icon"></i>
@@ -97,6 +106,18 @@
 <script>
 
 </script>
+
+
+<div class="ui divider"></div>
+<div class="ui divided horizontal footer link list" style="text-align: center;width: 100%">
+    <div class="item">zerojs dev tool 0.0.1</div>
+    <div class="item">
+        <a href="http://zerojs.io" class="item">zerojs.io</a>
+    </div>
+    <div class="item">
+        <a href="https://github.com/sskyy/zero" class="item">GitHub</a>
+    </div>
+</div>
 
 </body>
 </html>
