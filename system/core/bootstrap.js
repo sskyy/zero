@@ -8,21 +8,21 @@ module.exports = function( app, opt, cb ){
     try{
       var strap = _.reduce(app.modules,function(a, b){
 
-        console.log("[bootstrap] ", b.name)
+        ZERO.mlog("bootstrap", b.name)
         //when every module is initialized, call their bootstrap function
         var bootstrapResult = _.isFunction(b.bootstrap) ? b.bootstrap.call(b) : []
 
         return a.concat( bootstrapResult )
       },[])
     }catch(e){
-      console.error("bootstrap error",e)
+      ZERO.error("bootstrap error",e)
     }
 
 
     q.all( strap )
       .then(cb)
       .fail( function(err){
-      console.error( err)
+      ZERO.error( err)
     })
   })
 }

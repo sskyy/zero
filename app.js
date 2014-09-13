@@ -1,11 +1,17 @@
 var agent = require('webkit-devtools-agent');
 //agent.start()
 
+
 var express = require('express'),
   app = express(),
   bodyParser = require('body-parser'),
   multer  = require('multer'),
-  session = require('express-session')
+  session = require('express-session'),
+  zero = require('./system/core/zero'),
+  port = 3000,
+  colors = require('colors')
+
+
 
 
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -23,30 +29,19 @@ app.set('views', __dirname )
 app.express = express
 
 global['APP'] = app
+global['ZERO'] = zero
 
 require('./system/core/bootstrap')(app,{}, function(){
   console.log((function(){
-//                       _oo0oo_
-//                      o8888888o
-//                      88" . "88
-//                      (| -_- |)
-//                      0\  =  /0
-//                    ___/`---'\___
-//                  .' \\|     |// '.
-//                 / \\|||  :  |||// \
-//                / _||||| -:- |||||- \
-//               |   | \\\  -  /// |   |
-//               | \_|  ''\---/''  |_/ |
-//               \  .-\__  '-'  ___/-. /
-//             ___'. .'  /--.--\  `. .'___
-//          ."" '<  `.___\_<|>_/___.' >' "".
-//         | | :  `- \`.;`\ _ /`;.`/ - ` : | |
-//         \  \ `_.   \_ __\ /__ _/   .-` /  /
-//     =====`-.____`.___ \_____/___.-`___.-'=====
-//                       `=---='
+//################################################################################
+//     _____  _____   ____     ___      ____    _____      _      ____    _____
+//    |__  / | ____| |  _ \   / _ \    / ___|  |_   _|    / \    |  _ \  |_   _|
+//      / /  |  _|   | |_) | | | | |   \___ \    | |     / _ \   | |_) |   | |
+//     / /_  | |___  |  _ <  | |_| |    ___) |   | |    / ___ \  |  _ <    | |
+//    /____| |_____| |_| \_\  \___/    |____/    |_|   /_/   \_\ |_| \_\   |_|
 //
-//
-  }).toString().replace(/^(\/\/|function\s\(\){|\s*})/mg,''))
-  console.log("==============zero listening on 3000=============")
-  app.listen(3000)
+//################################################################################
+  }).toString().replace(/^(\/\/|function\s\(\){|\s*})/mg,'').cyan)
+  zero.mlog("zero","listening",port)
+  app.listen(port)
 })

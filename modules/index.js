@@ -11,7 +11,6 @@ function generateBeforeCreateCallback(indexName, nodeName, models) {
 
     //TODO: validation
 //      if( indexes[indexName].config.limit ){}
-    console.log("++++++++++",indexName, JSON.stringify(val[indexName], null, 4))
 
     var index = models[indexName]
     return q.all( val[indexName].map(function ( inputIndex , key) {
@@ -19,10 +18,10 @@ function generateBeforeCreateCallback(indexName, nodeName, models) {
       //may need to build index
       if (!inputIndex.id) {
         //same name check
-        console.log("[INDEX] may create new ", inputIndex.name)
+        ZERO.mlog("index"," may create new ", inputIndex.name)
         return index.findOne({name: inputIndex.name}).then(function (i) {
           if (i) {
-            console.log("[INDEX] not create new ", inputIndex.name)
+            ZERO.mlog("index"," not create new ", inputIndex.name)
             //to support query from browser.
             //when using `category.id=2` from browser, waterline look for key name of 'category.id' to match query
             //TODO this does not working with multiple index like `tag`
@@ -30,11 +29,11 @@ function generateBeforeCreateCallback(indexName, nodeName, models) {
             val[indexName][key] = _.pick(i, ['id', 'name'])
             return val
           } else {
-            console.log("[INDEX] create new ", inputIndex.name)
+            ZERO.mlog("index"," create new ", inputIndex.name)
 
             return index.create(inputIndex).then(function (savedIndex) {
               //TODO provide config options to decide which field should be cached
-              console.log("[INDEX] create new done ", inputIndex.name)
+              ZERO.mlog("index"," create new done ", inputIndex.name)
 
               //to support query from browser.
               //when using `category.id=2` from browser, waterline look for key name of 'category.id' to match query
@@ -45,7 +44,7 @@ function generateBeforeCreateCallback(indexName, nodeName, models) {
           }
         })
       }else{
-        console.log("[INDEX] not create new ", inputIndex.name)
+        ZERO.mlog("index"," not create new ", inputIndex.name)
 
         val[indexName][key] = _.pick(inputIndex, ['id', 'name'])
 
@@ -61,7 +60,7 @@ function generateBeforeCreateCallback(indexName, nodeName, models) {
 function generateAfterCreateCallback(indexName, nodeName, models) {
 
   return function handlerIndexAfterNodeCreate(val) {
-    console.log( "[index] after create node")
+    ZERO.mlog( "index"," after create node")
 
     if (!val[indexName]) return
     var index = models[indexName]
@@ -82,7 +81,7 @@ function generateAfterCreateCallback(indexName, nodeName, models) {
 
 function generateBeforeUpdateCallback(indexName,nodeName, models) {
   return function handlerIndexBeforeNodeUpdate(val) {
-    console.log( "[index] after create node")
+    ZERO.mlog( "index"," after create node")
 
     if (!val[indexName]) return
 
@@ -130,7 +129,7 @@ function generateBeforeUpdateCallback(indexName,nodeName, models) {
             })
           }
         }).fail(function(err){
-          console.log( err)
+          ZERO.error( err)
         })
       }else{
         val[indexName][key] = _.pick(index, ['id', 'name'])

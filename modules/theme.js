@@ -86,8 +86,8 @@ module.exports = {
       statics:_.zipObject( statics,  fill(statics.length, true))
     }
 
-//    console.log("[THEME] cache",themePath, JSON.stringify( root.cache, null, 4))
-    console.log("[THEME] route",matchRoute)
+//    ZERO.log("THEME"," cache",themePath, JSON.stringify( root.cache, null, 4))
+    ZERO.mlog("THEME","route",matchRoute)
 
     var reqHandler =  function( req, res, next ){
       var restRoute = {
@@ -97,17 +97,17 @@ module.exports = {
         cachePath = path.join( appUrl, themePath, restRoute.url),
         extension
 
-      console.log(console.log("[THEME] handler",restRoute.url, cachePath) )
+//      ZERO.mlog("THEME","handler",restRoute.url, cachePath)
 
       if( root.dep.model.models[restRoute.url.split("/")[0]] !== undefined ){
-        console.log("[THEME] find model match", restRoute)
+        ZERO.mlog("THEME","find model match", restRoute)
 
         //1. check if current view route match any model api
         root.dep.request.triggerRequest( "/"+restRoute.url, restRoute.method , req, res, function(){})
 
         //all done
         req.bus.then(function(){
-          console.log("[THEME]  model action done", restRoute.url)
+          ZERO.mlog("THEME","model action done", restRoute.url)
 
           //TODO find the right view file
           var i, templateName, templatePath, tmp = restRoute.url.split("/")
@@ -119,19 +119,19 @@ module.exports = {
           }
 
           if( extension ){
-            console.log("[THEME] find template", templateName, extension,req.bus.data('respond'))
+            ZERO.mlog("THEME","find template", templateName, extension,req.bus.data('respond'))
             res.render( path.join( themePath, templateName+'.'+extension), req.bus.data('respond'))
           }else{
-            console.log("[THEME] can't find template", templateName, extension)
+            ZERO.mlog("THEME"," can't find template", templateName, extension)
             next()
           }
         }).fail(function(err){
-          console.log("err",err)
+          ZERO.error("err",err)
         })
 
       }else if( extension = findExtension(root.cache[module.name].page,root.config.engines,cachePath )){
         //2. check if current view route match any page
-        console.log("[THEME] find view page match", restRoute.url, extension)
+        ZERO.mlog("THEME"," find view page match", restRoute.url, extension)
 
         if(  module.theme.locals && module.theme.locals[restRoute.url]){
           if(_.isFunction(module.theme.locals[restRoute.url])){
@@ -148,11 +148,11 @@ module.exports = {
 
       }else if( root.cache[module.name].statics[cachePath] ){
         //3. check if current view route match any static files
-        console.log("[THEME] find statics match", restRoute.url)
+//        ZERO.mlog("THEME"," find statics match", restRoute.url)
 
         res.sendFile( cachePath )
       }else{
-        console.log("[THEME] cannot find any match")
+        ZERO.mlog("THEME"," cannot find any match")
         next()
       }
     }

@@ -28,7 +28,7 @@ function callInit( moduleName, from, cb ){
 
   if( module.status ) return cb()
 
-  console.log( "begin init", moduleName)
+  ZERO.mlog("loader", "begin init", moduleName)
   from = from || []
   module.status = 'initializing'
   module.deps = module.deps  || []
@@ -91,7 +91,7 @@ exports.loadAll = function (opt, cb) {
     return module
   })
 
-  console.log( "modules:", Object.keys(modules))
+  ZERO.info( "modules:", Object.keys(modules).join(" | "))
   async.eachSeries( Object.keys(modules), function( name, moduleCb ){
     if( modules[name].status ) return moduleCb()
     callInit( name, [], moduleCb)

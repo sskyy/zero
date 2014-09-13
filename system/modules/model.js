@@ -41,7 +41,7 @@ function extendListener(module) {
       module.listen[ name+'.'+method] ={
         "name" : method + name[0].toUpperCase() + name.slice(1),
         "function": function (arg) {
-          console.log("on ", name, method, arg)
+          ZERO.mlog("model","on ", name, method, arg)
           //this bus is a started forked bus or snapshot
           var bus = this
 
@@ -73,7 +73,7 @@ function cloneModel( model,name, bus ){
       bus.fire( name+"."+transformCallbackName, val).then( function(){
         cb()
       }).fail(function(err){
-        console.log("LIFE CYCLE CALLBACK FAILED",err)
+        ZERO.error("LIFE CYCLE CALLBACK FAILED",err)
         cb(name+"."+transformCallbackName + " failed" )
       })
     })
@@ -114,13 +114,13 @@ module.exports = {
         //add listen to this module
         //manually use module bus to add listeners
         extendListener(root)
-//        console.log("[after extend listener]", root.listen)
+//        ZERO.mlog("model","[after extend listener]", root.listen)
         root.dep.bus.expand(root)
 
         resolve()
       });
     }).fail("err",function(err){
-      console.log( "model fail=====", err)
+      ZERO.error( "model fail=====", err)
     })
   }
 }
