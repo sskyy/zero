@@ -5,7 +5,7 @@ var _  = require("lodash"),
 function extendListener( root, nodeName ){
   root.listen = root.listen || {}
   root.listen[nodeName+'.create.before'] = function generateBrief(val){
-    console.log("begin to briefing for", nodeName)
+    ZERO.mlog("node","begin to briefing for", nodeName)
     if( val[root.config.field].length > root.config.limit + root.config.overflow ){
       //TODO 摘要规则进一步优化
 
@@ -13,7 +13,7 @@ function extendListener( root, nodeName ){
         htmlToText.fromString(val[root.config.field]).slice(0,root.config.limit).replace(/[,.\uff0c\u3002_-]+$/g,"") + '...'
 
     }else{
-      console.log( "too short, no need to brief", val[root.config.field].length)
+      ZERO.mlog("node", "too short, no need to brief", val[root.config.field].length)
     }
     return val
   }
@@ -50,7 +50,7 @@ module.exports = {
         extendListener( root, nodeName )
       }
     })
-    console.log("[NODE] after extend listener", root.listen)
+    ZERO.mlog("NODE","after extend listener", root.listen)
     root.dep.bus.expand(root)
   }
 }

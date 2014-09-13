@@ -29,8 +29,6 @@ function standardCallback(callback, bus, fnForEachReq) {
 
 
     if( fnForEachReq ){
-
-      console.log("fnForEachReq", fnForEachReq, callback, bus)
       fnForEachReq( req )
     }
 
@@ -40,7 +38,7 @@ function standardCallback(callback, bus, fnForEachReq) {
 
     } else if (_.isString(callback)) {
 
-      console.log("firing ", callback, _.merge(req.params, req.body, req.query), req.route)
+      ZERO.mlog("request","firing ", callback, _.merge(req.params, req.body, req.query), req.route)
       req.bus.fire(callback, _.merge(req.params, req.body, req.query))
       //important!
       next()
@@ -59,7 +57,7 @@ function standardCallback(callback, bus, fnForEachReq) {
         }))
         next()
       }).fail(function (err) {
-        console.log(err)
+        ZERO.error(err)
         next( err)
       })
     }
@@ -83,7 +81,7 @@ module.exports = {
       }
       handler.name = handler.module+(handler.function.name ? "." + handler.function.name : '')
       root.add( url, handler)
-      console.log("[request expand]", module.name, url, handler.name)
+      ZERO.mlog("request", "expanding", module.name, url, handler.name)
     })
   },
   bootstrap: function () {
@@ -113,7 +111,7 @@ module.exports = {
 
     //save it! other module may need
     root.routes.push( route, route.handler.name,  route.handler.order  )
-    console.log("[adding route]", route.url, route.method )
+    ZERO.mlog("request","adding route", route.url, route.method )
   },
   getRouteHandlers : function( url, method ){
     var root = this,
@@ -132,7 +130,7 @@ module.exports = {
     return handlers
   },
   triggerRequest : function( url, method, req, res ){
-    console.log("[request] trigger request", url, method)
+    ZERO.mlog("request","trigger request", url, method)
 
     var root = this,
       handlers = root.getRouteHandlers(url, method),
@@ -165,7 +163,6 @@ module.exports = {
     var rex = "^" + wildcard.replace("*","(.*)").replace(/(^|\/):\w+(\/|$)/g, "$1([\\w\\d_-]+)$2").replace(/\//g,"\\/") + "$"
     var matches = url.match( new RegExp(rex))
 
-    console.log("MATCHING===URL:", url, "WILDCARD:",wildcard, "REX:",rex ,matches&&_.zipObject( keys, matches.slice(1)))
 
     return matches ? _.zipObject( keys, matches.slice(1) ) : false
 
