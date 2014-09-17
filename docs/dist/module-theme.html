@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>zero.js Source: system/modules/dev/public/js/events.js</title>
+	<title>zero.js Module: theme</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -102,123 +102,251 @@
 	<div class="row-fluid">
 
 		
-			<div class="span12">
-				
+		<div class="span8">
+			
 				<div id="main">
 					
 
 
-		<h1 class="page-title">Source: system/modules/dev/public/js/events.js</h1>
-    
+	<h1 class="page-title">Module: theme</h1>
 <section>
-	<article>
-		<pre
-			class="sunlight-highlight-javascript linenums">/**
- * Created by jiamiu on 14-4-8.
- */
 
-function isArray(obj){
-  return Array.isArray? Array.isArray(obj):Object.prototype.toString.call(obj) == '[object Array]'
-}
+<header>
+    <h2>
+    theme
+    </h2>
+    
+</header>
 
-function createSVGElement( e,attr){
-  var $el = Snap( document.createElementNS('http://www.w3.org/2000/svg', e) )
-  return attr ? $el.attr(attr) : $el
-}
+<article>
+    <div class="container-overview">
+    
 
-function createSVGText( text ){
-  var $text = createSVGElement('text');
-  $text.node.innerHTML=text;
-  Snap('svg').append($text);
-  $text.data('width',$text.getBBox().width);
-  return $text.remove()
-}
+    
+        
+            <div class="description"><p>为所有依赖该模块并声明了 theme 属性的模块提供主题服务。
+当访问的路径为 <code>/模块名/view/任意名字</code> 时，主题就开始接管，接管的规则为：</p>
+<ol>
+<li>当 <code>任意名字</code> 和某个 model 名字相同时，将触发相应的 model 方法，并将 bus.data('respond') 中的数据传给同名模板。</li>
+<li>当 <code>任意名字</code> 和主题文件夹下的某个模板文件同名时，将直接渲染该模板文件。如果同时在theme.locals中声明一个同名属性，那么会将该属性的值作为数据传给模板。如果改属性值是一个函数，那么将执行该函数，然后将 bus.data('respond') 作为数据传给模板。</li>
+<li>当 <code>任意名字</code> 和主题文件夹下的某个文件匹配时，直接输出该文件。</li>
+</ol></div>
+        
+
+        
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
 
 
-function createFnRect($t,attr){
-  var $g = createSVGElement('g').attr('class','fnRect'),
-    $r = createSVGElement('rect', $.extend({
-      x:0,
-      y:0,
-      fill:FILL
-    },attr))
 
-  $t.attr({x:PADDING/2,y:TEXT_FIX})
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="theme.js.html">modules/theme.js</a>,
+				 <a href="theme.js.html#sunlight-1-line-31">line 31</a>
+			</li>
+		</ul>
+	</dd>
+	
 
-  return $g.append( $r).append($t)
-}
+	
 
-function tranStr( obj ){
-  return 'translate('+obj.x+','+obj.y+')'
-}
+	
 
-function iteratorLast( obj, branch, fn,ctx ){
-  ctx = ctx||this
-  var end = false,
-    children
+	
+</dl>
 
-  if( isArray(branch) ){
-    if( !branch.every(function(b){ if( eval('obj.'+b) !== undefined) return true})) end= true
-  }else{
-    if( eval('obj.'+b) === undefined ) end = true
-  }
 
-  if( end ){
-    return fn.call(ctx,obj,undefined)
+        
+            <h3>Example</h3>
+            
+    <pre class="sunlight-highlight-javascript"> theme 字段示例
+{
+ directory : &#x27;THEME_DIRECTORY&#x27;
+}</pre>
 
-  }else {
 
-    children = isArray(branch) ?
-      branch.map(function (b) {
-        return callIterator( eval('obj.'+b), branch,fn,ctx)
-      }) :
-      callIterator( eval('obj.'+branch,branch,fn,ctx))
+        
+    
+    </div>
 
-    return  fn.call(ctx, obj, children)
-  }
+    
 
-  function callIterator(obj, branch ,fn,ctx){
-    var x = eval('obj.' + branch),
-      childrenRes = isArray(x) ? [] : {}
+    
 
-    forEach( x,function( e, i){
-      childrenRes[i] = iterator(c, branch, fn, ctx)
-    })
+    
 
-    return childrenRes
-  }
+    
 
-}
+    
 
-function buildTree( data, children){
+    
 
-}
+    
+        <h3 class="subsection-title">Methods</h3>
 
-function forEach( object, iterator ){
-  if( Object.prototype.toString.call(object) == '[object Array]'){
-    return object.forEach(iterator)
-  }
+        <dl>
+            
+<dt>
+    <h4 class="name" id="expand"><span class="type-signature">&lt;static> </span>expand<span class="signature">(module)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
 
-  for(var i in object){
-    iterator.call( object[i], object[i], i)
-  }
-}
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
 
-$(function(){
-  $.ajax({
-    url : '/dev/events',
-    success : function(data){
-      var $g = createSVGElement('g'),
-        $diagram = iteratorLast({"/":data},['str','reg'],buildTree,$g)
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
 
-      console.log($diagram)
-    }
-  })
-})
-</pre>
-	</article>
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>module</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="theme.js.html">modules/theme.js</a>,
+				 <a href="theme.js.html#sunlight-1-line-60">line 60</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">boolean</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        </dl>
+    
+
+    
+
+    
+</article>
+
 </section>
-
 
 
 
@@ -245,6 +373,10 @@ $(function(){
 				</footer>
 			</div>
 
+			
+			<div class="span3">
+				<div id="toc"></div>
+			</div>
 			
 			<br clear="both">
 		</div>

@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>zero.js Global</title>
+	<title>zero.js Module: request</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -108,12 +108,12 @@
 					
 
 
-	<h1 class="page-title">Global</h1>
+	<h1 class="page-title">Module: request</h1>
 <section>
 
 <header>
     <h2>
-    
+    request
     </h2>
     
 </header>
@@ -124,73 +124,10 @@
 
     
         
+            <div class="description"><p>该模块可以让其他模块能使用增强后的 express 的路由功能。</p></div>
+        
 
         
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Members</h3>
-
-        <dl>
-            
-<dt class="name" id="_">
-    <h4><span class="type-signature"></span>_<span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-    
-    <div class="description">
-        <p>Created by jiamiu on 14-9-12.</p>
-    </div>
-    
-
-    
-
-    
 <dl class="details">
 	
 
@@ -217,8 +154,8 @@
 	<dd class="tag-source">
 		<ul class="dummy">
 			<li>
-				<a href="orderedCollection.js.html">system/core/orderedCollection.js</a>,
-				 <a href="orderedCollection.js.html#sunlight-1-line-4">line 4</a>
+				<a href="request.js.html">system/modules/request.js</a>,
+				 <a href="request.js.html#sunlight-1-line-68">line 68</a>
 			</li>
 		</ul>
 	</dd>
@@ -232,93 +169,20 @@
 </dl>
 
 
-    
-</dd>
-
         
-            
-<dt class="name" id="Q">
-    <h4><span class="type-signature"></span>Q<span class="type-signature"></span></h4>
-
     
-</dt>
-<dd>
+    </div>
+
     
 
     
 
     
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-	<dt class="tag-source">Source:</dt>
-	<dd class="tag-source">
-		<ul class="dummy">
-			<li>
-				<a href="bus.js.html">system/core/bus.js</a>,
-				 <a href="bus.js.html#sunlight-1-line-28">line 28</a>
-			</li>
-		</ul>
-	</dd>
-	
-
-	
-
-	
-
-	
-</dl>
-
 
     
-        <h5>Example</h5>
-        
-    <pre class="sunlight-highlight-javascript"> _events structure
-{
- &quot;{namespace}&quot; : {
-     &quot;listeners&quot; : [{
-       &quot;name&quot; : &quot;{function name or alias}&quot;,
-       &quot;module&quot; : &quot;{module name}&quot;
-     }],
-     &quot;children&quot; : {
-       &quot;str&quot; : {
-         &quot;{child namespace}&quot; : {
-           &quot;name&quot; : &quot;{module name}.{function name or alias}&quot;,
-         }
-       },
-       &quot;reg&quot; : {
-         &quot;{regular expression}&quot;:{
-           &quot;name&quot; : &quot;{module name}.{function name or alias}&quot;,
-         }
-       }
-     }
-   }
-}</pre>
-
 
     
-</dd>
 
-        </dl>
     
 
     
@@ -327,7 +191,7 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="isArray"><span class="type-signature"></span>isArray<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="add"><span class="type-signature">&lt;static> </span>add<span class="signature">(url, handler, order)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -335,7 +199,7 @@
     
     
     <div class="description">
-        <p>Created by jiamiu on 14-4-8.</p>
+        <p>添加一个对某一个 url 进行处理的路由函数，可以使用参数 order 来控制路由函数触发的顺序。用法见 orderedCollection 。</p>
     </div>
     
 
@@ -343,6 +207,104 @@
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>支持 express route url 的所有写法，如 <code>/user/:id</code>。</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>handler</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+|
+
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>使用object形式可以手动指定handler名称，如 {&quot;function&quot;:function(){...},&quot;name&quot;:&quot;handlerName&quot;}。</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>order</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>例如 {first:true}/{last:true}。</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
     
     
     
@@ -372,8 +334,327 @@
 	<dd class="tag-source">
 		<ul class="dummy">
 			<li>
-				<a href="events.js.html">system/modules/dev/public/js/events.js</a>,
-				 <a href="events.js.html#sunlight-1-line-5">line 5</a>
+				<a href="request.js.html">system/modules/request.js</a>,
+				 <a href="request.js.html#sunlight-1-line-109">line 109</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="expand"><span class="type-signature">&lt;static> </span>expand<span class="signature">(module)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>扩展依赖request的模块。为其提供增强后的 express 的 route 功能。</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>module</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>被扩展的模块，将读取该模块的 <code>route</code> 属性。该属性必须是一个对象，键名为要处理的 url，键值为路由处理函数。</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="request.js.html">system/modules/request.js</a>,
+				 <a href="request.js.html#sunlight-1-line-80">line 80</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="triggerRequest"><span class="type-signature">&lt;static> </span>triggerRequest<span class="signature">(url, method, req, res)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>模拟请求某一 url 。</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>method</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>req</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>传入原始的 req 对象。</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>传入原始的 req 对象。</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="request.js.html">system/modules/request.js</a>,
+				 <a href="request.js.html#sunlight-1-line-152">line 152</a>
 			</li>
 		</ul>
 	</dd>

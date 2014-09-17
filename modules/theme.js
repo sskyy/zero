@@ -1,33 +1,3 @@
-/**
- * Theme 模块
- * ==========
- *
- * 配置项示例：
- * theme : {
- *  directory : 'themes/default',                        //模块下主题文件夹的相对路径
- *  locals : {                                           //使用服务器端渲染页面是，可以用这个手动选项来页面需要的服务器端数据
- *    user : {                                           //键名就是相应模板页面的名字，值就是需要渲染的数据
- *       name :  'jiamiu'
- *      }
- *    }
- * }
- *
- * 页面渲染规则：
- * theme 模块会在路由层面监听 `/模块名/view/*` 这个路由。如twenty声明了依赖theme模块，那theme就会监听 `/twenty/view/*`。
- * 在路由回调函数里，theme 会检测路径的后半部分(如/twenty/view/user/1，后半部分指定就是 user/1)是否匹配以下几个规则:
- *   1. 是否和某个 model 的路径匹配
- *   2. 是否和主题文件夹下的某个 ejs 或 jade 文件匹配
- *   3. 是否和主题文件夹下某个 文件匹配
- *
- * 满足1，theme 会主动去调用监听路径后半部分的回调函数，例如调用本来监听 /user/1 这个路径的回调函数。然后找到名为 user.jade
- *  或 user.ejs 的模班进行渲染，默认将 bus.data('respond') 作为渲染数据传入。
- *
- * 满足2， theme 将直接渲染相应页面，同时去配置项中的 locals 去找有没有相应地数据或函数，如果有则传入。
- *
- * 满足3， theme直接将文件作为静态资源输出。
- */
-
-
 var path = require('path'),
   q = require('q'),
   _ = require('lodash'),
@@ -58,6 +28,24 @@ function findExtension( collection, exts, item){
   return _.find( exts, function( ext ){ return collection[item+"."+ext]})
 }
 
+/**
+ * @description
+ * 为所有依赖该模块并声明了 theme 属性的模块提供主题服务。
+ * 当访问的路径为 `/模块名/view/任意名字` 时，主题就开始接管，接管的规则为：
+ *
+ *   1. 当 `任意名字` 和某个 model 名字相同时，将触发相应的 model 方法，并将 bus.data('respond') 中的数据传给同名模板。
+ *   2. 当 `任意名字` 和主题文件夹下的某个模板文件同名时，将直接渲染该模板文件。如果同时在theme.locals中声明一个同名属性，那么会将该属性的值作为数据传给模板。如果改属性值是一个函数，那么将执行该函数，然后将 bus.data('respond') 作为数据传给模板。
+ *   3. 当 `任意名字` 和主题文件夹下的某个文件匹配时，直接输出该文件。
+ *
+ * @module theme
+ *
+ * @example
+ * //theme 字段示例
+ * {
+ *  directory : 'THEME_DIRECTORY'
+ * }
+ *
+ */
 module.exports = {
   deps : ['request','statics','config','model'],
   config : {
@@ -66,6 +54,10 @@ module.exports = {
     'omitModule' : false
   },
   cache : {},
+  /**
+   * @param module
+   * @returns {boolean}
+   */
   expand : function( module ){
     if( !module.theme ) return false
 

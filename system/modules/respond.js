@@ -1,5 +1,9 @@
 var _ = require('lodash')
 
+/**
+ * 该模块负责自动将 bus.data('respond') 中的数据输出到浏览器端。
+ * @module respond
+ */
 module.exports = {
   deps: ['request','model', 'bus'],
   route : {

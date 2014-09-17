@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>zero.js Source: system/modules/dev/public/js/events.js</title>
+	<title>zero.js Source: system/modules/rest.js</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -108,114 +108,83 @@
 					
 
 
-		<h1 class="page-title">Source: system/modules/dev/public/js/events.js</h1>
+		<h1 class="page-title">Source: system/modules/rest.js</h1>
     
 <section>
 	<article>
 		<pre
-			class="sunlight-highlight-javascript linenums">/**
- * Created by jiamiu on 14-4-8.
+			class="sunlight-highlight-javascript linenums">var _  = require('lodash')
+var tosource = require('tosource')
+
+var restMap = {
+  'find': 'get',
+  'findOne': 'get',
+  'update' : 'put',
+  'create' : 'post',
+  'destroy' : 'delete'
+}
+
+/**
+ * 为依赖次模块的其他模块的 model 提供 rest 接口
+ * @module rest
  */
+module.exports = {
+  deps : ['respond','model','request'],
+  /**
+   * 如果模块声明的 model 中的 rest 属性为 true, 则自动为该 model 添加 rest 接口。
+   * @param module
+   */
+  expand : function( module ){
+    //read field `models`
+    if( !module.models ) return
 
-function isArray(obj){
-  return Array.isArray? Array.isArray(obj):Object.prototype.toString.call(obj) == '[object Array]'
-}
+    var root = this
 
-function createSVGElement( e,attr){
-  var $el = Snap( document.createElementNS('http://www.w3.org/2000/svg', e) )
-  return attr ? $el.attr(attr) : $el
-}
+    module.models.forEach( function( model){
+      if( !model.rest ) return
 
-function createSVGText( text ){
-  var $text = createSVGElement('text');
-  $text.node.innerHTML=text;
-  Snap('svg').append($text);
-  $text.data('width',$text.getBBox().width);
-  return $text.remove()
-}
+      var modelName = model.identity
+
+      //1. add route for CRUD function
+      _.forEach( restMap, function( requestMethod, instanceMethod  ){
+          var url,
+          event = modelName+'.'+instanceMethod
+
+        if( instanceMethod == 'find' || instanceMethod == 'create'){
+          url = requestMethod.toUpperCase() + ' /'+modelName
+        }else{
+          url = requestMethod.toUpperCase() + ' /'+modelName + '/:id'
+        }
+
+        //add request handler to send model operation result to browser
+        //TODO separate the respond handler from route would be better?
+        root.dep.request.add( url, function restCallback( req, res, next){
+
+          ZERO.mlog("REST","fire" , event ,req.params, _.merge(req.params, req.body, req.query))
+          req.bus.fire( event, _.merge(req.params, req.body, req.query) ).then( function(){
+            //use respond module to help us respond
+            req.bus.data("respond", req.bus.data( modelName + "." + instanceMethod ))
+            next()
+          })
+        })
+      })
 
 
-function createFnRect($t,attr){
-  var $g = createSVGElement('g').attr('class','fnRect'),
-    $r = createSVGElement('rect', $.extend({
-      x:0,
-      y:0,
-      fill:FILL
-    },attr))
+      //2. add route for model action
+      root.dep.request.add('POST /'+modelName + '/:action', function restActionCallback( req, res, next){
+        //rest api handled already
+        if( req.bus.data('respond')) return next()
 
-  $t.attr({x:PADDING/2,y:TEXT_FIX})
+        ZERO.mlog("REST", "rest request handler take action", req.bus._id)
+        var action = req.param('action')
+        req.bus.fire( modelName + "." + req.param('action'), _.omit(_.merge(req.params, req.body, req.query),['action']))
 
-  return $g.append( $r).append($t)
-}
-
-function tranStr( obj ){
-  return 'translate('+obj.x+','+obj.y+')'
-}
-
-function iteratorLast( obj, branch, fn,ctx ){
-  ctx = ctx||this
-  var end = false,
-    children
-
-  if( isArray(branch) ){
-    if( !branch.every(function(b){ if( eval('obj.'+b) !== undefined) return true})) end= true
-  }else{
-    if( eval('obj.'+b) === undefined ) end = true
-  }
-
-  if( end ){
-    return fn.call(ctx,obj,undefined)
-
-  }else {
-
-    children = isArray(branch) ?
-      branch.map(function (b) {
-        return callIterator( eval('obj.'+b), branch,fn,ctx)
-      }) :
-      callIterator( eval('obj.'+branch,branch,fn,ctx))
-
-    return  fn.call(ctx, obj, children)
-  }
-
-  function callIterator(obj, branch ,fn,ctx){
-    var x = eval('obj.' + branch),
-      childrenRes = isArray(x) ? [] : {}
-
-    forEach( x,function( e, i){
-      childrenRes[i] = iterator(c, branch, fn, ctx)
+        //we will use default request handler for model actions
+        next()
+      })
     })
-
-    return childrenRes
   }
-
-}
-
-function buildTree( data, children){
-
-}
-
-function forEach( object, iterator ){
-  if( Object.prototype.toString.call(object) == '[object Array]'){
-    return object.forEach(iterator)
-  }
-
-  for(var i in object){
-    iterator.call( object[i], object[i], i)
-  }
-}
-
-$(function(){
-  $.ajax({
-    url : '/dev/events',
-    success : function(data){
-      var $g = createSVGElement('g'),
-        $diagram = iteratorLast({"/":data},['str','reg'],buildTree,$g)
-
-      console.log($diagram)
-    }
-  })
-})
-</pre>
+}</pre>
 	</article>
 </section>
 

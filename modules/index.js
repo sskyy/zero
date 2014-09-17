@@ -25,7 +25,6 @@ function generateBeforeCreateCallback(indexName, nodeName, models) {
             //to support query from browser.
             //when using `category.id=2` from browser, waterline look for key name of 'category.id' to match query
             //TODO this does not working with multiple index like `tag`
-            val[indexName+'.id'] = i.id
             val[indexName][key] = _.pick(i, ['id', 'name'])
             return val
           } else {
@@ -37,7 +36,6 @@ function generateBeforeCreateCallback(indexName, nodeName, models) {
 
               //to support query from browser.
               //when using `category.id=2` from browser, waterline look for key name of 'category.id' to match query
-              val[indexName+'.id'] = savedIndex.id
               val[indexName][key] = _.pick(savedIndex, ['id', 'name'])
               return val
             })
@@ -100,7 +98,6 @@ function generateBeforeUpdateCallback(indexName,nodeName, models) {
             //to support query from browser.
             //when using `category.id=2` from browser, waterline look for key name of 'category.id' to match query
             //TODO : this do not support multiple index
-            val[indexName+'.id'] = foundIndex.id
             val[indexName][key] = _.pick(foundIndex, ['id', 'name'])
 
             var nodes = foundIndex.nodes || {}
@@ -120,9 +117,7 @@ function generateBeforeUpdateCallback(indexName,nodeName, models) {
             return index.create(inputIndex).then(function (savedIndex) {
               //TODO provide config options to decide which field should be cached
 
-              //to support query from browser.
               //when using `category.id=2` from browser, waterline look for key name of 'category.id' to match query
-              val[indexName+'.id'] = savedIndex.id
               val[indexName][key] = _.pick(savedIndex, ['id', 'name'])
 
               return val
@@ -144,6 +139,31 @@ function generateBeforeUpdateCallback(indexName,nodeName, models) {
   }
 }
 
+function generateBeforeModelFindHandler( indexName, nodeName, models){
+  return {
+    "function": function convertQueryWithDotToObject( val ){
+      _.forEach(val, function( v, k){
+        if( (new RegExp("^"+indexName+"\\.")).test(k) ){
+          console.log("has dot",indexName,k)
+          var obj = {}, i= obj,stack = k.split("."),n
+          while( n = stack.shift() ){
+            if( stack.length !== 0){
+              i[n] = {}
+              i= i[n]
+            }else{
+              i[n] = v
+            }
+          }
+          _.extend(val,obj)
+          delete val[k]
+        }else{
+          val[k] = v
+        }
+      })
+    },
+    "first" : true
+  }
+}
 
 
 function setListener( root, indexName, nodeName, models){
@@ -151,6 +171,9 @@ function setListener( root, indexName, nodeName, models){
   root.listen[nodeName + '.create.before'] = generateBeforeCreateCallback(indexName, nodeName, models)
   root.listen[nodeName + '.create.after'] = generateAfterCreateCallback(indexName,nodeName ,models)
   root.listen[nodeName + '.update.before']= generateBeforeUpdateCallback(indexName,nodeName, models)
+
+  //before find
+  root.listen[nodeName+'.find'] = generateBeforeModelFindHandler( indexName, nodeName, models)
 }
 
 module.exports = {

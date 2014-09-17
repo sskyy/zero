@@ -1,6 +1,10 @@
 var Bus = require('../core/bus'),
   _ = require('lodash')
 
+/**
+ * 为所有其他模块提供 bus 服务。参见 Bus。
+ * @module bus
+ */
 module.exports = {
   bus : new Bus,
   expand : function( module ){

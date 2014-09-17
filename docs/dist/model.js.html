@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>zero.js Source: system/modules/dev/public/js/events.js</title>
+	<title>zero.js Source: system/modules/model.js</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -108,114 +108,151 @@
 					
 
 
-		<h1 class="page-title">Source: system/modules/dev/public/js/events.js</h1>
+		<h1 class="page-title">Source: system/modules/model.js</h1>
     
 <section>
 	<article>
 		<pre
-			class="sunlight-highlight-javascript linenums">/**
- * Created by jiamiu on 14-4-8.
+			class="sunlight-highlight-javascript linenums">var q = require('q'),
+  Waterline = require('waterline'),
+  _ = require('lodash')
+
+
+var diskAdapter = require('sails-disk')
+
+var config = {
+  adapters: {
+    'default': diskAdapter,
+    disk: diskAdapter
+  },
+  connections: {
+    myLocalDisk: {
+      adapter: 'disk'
+    }
+  },
+  defaults: {
+    migrate: 'alter'
+  }
+};
+
+var lifeCycleCallback =[
+  'beforeCreate',
+  'beforeValidate',
+  'beforeDestroy',
+  'beforeUpdate',
+  'afterCreate',
+  'afterValidate',
+  'afterDestroy',
+  'afterUpdate'
+]
+
+function extendListener(module) {
+  module.listen = {}
+
+  _.forEach( module.models, function( model, name){
+
+    ['find', 'create', 'update', 'destroy','findOne'].forEach(function (method) {
+
+      module.listen[ name+'.'+method] ={
+        "name" : method + name[0].toUpperCase() + name.slice(1),
+        "function": function (arg) {
+          ZERO.mlog("model","on ", name, method, arg)
+          //this bus is a started forked bus or snapshot
+          var bus = this
+
+          //we should use cloned orm model function, so inside the function we can trigger lifecycle callbacks
+          var clonedModel = cloneModel(module.models[name], name, bus.snapshot())
+
+          return clonedModel[method](arg).then(function (data) {
+            bus.data(name + "." + method, data)
+            return data
+          }).fail(function (err) {
+            console.error("model err", err)
+            return bus.error(err)
+          })
+        }
+      }
+    })
+  })
+}
+
+function cloneModel( model,name, bus ){
+
+  var clonedModel = _.clone( model )
+  clonedModel._callbacks = _.cloneDeep(model._callbacks)
+
+  lifeCycleCallback.forEach( function( callbackName){
+
+    clonedModel._callbacks[callbackName].push( function modelLifeCycleCallback( val,cb){
+      var transformCallbackName = callbackName.replace(/([a-z]+)([A-Z])([a-z]+)/,"$2$3.$1").toLowerCase()
+      bus.fire( name+"."+transformCallbackName, val).then( function(){
+        cb()
+      }).fail(function(err){
+        ZERO.error("LIFE CYCLE CALLBACK FAILED",err)
+        cb(name+"."+transformCallbackName + " failed" )
+      })
+    })
+  })
+
+  clonedModel.__proto__ = model
+  return clonedModel
+}
+
+/**
+ * 为所有定义了 models 属性的模块提供 orm 服务。
+ * @module model
  */
+module.exports = {
+  deps : ['bus'],
+  orm: new Waterline,
+  models : {},
+  /**
+   * 如果模块定义了 models 属性，则读取其中的每个 model 定义，并通过 waterline 来建立 orm 。
+   * 所有建立的 model 对象都将存在此模块的 models 属性中，可以直接调用。
+   * 也可以通过例如 `bus.fire("model.find")` 的方式来调用，推荐使用这种方式。
+   * @param module
+   */
+  expand: function (module) {
+    var root = this
+    if (!module.models) return
 
-function isArray(obj){
-  return Array.isArray? Array.isArray(obj):Object.prototype.toString.call(obj) == '[object Array]'
-}
+    module.models.forEach(function (model) {
+      //add model placeholder here, so other modules may know what models are registered
+      if( root.models[model.identity]){
+        ZERO.warn("duplicated model definition :",model.identity,"from",root.name)
+      }else{
+        root.models[model.identity] = model
+      }
+    })
+  },
+  bootstrap: function () {
+    var root = this
 
-function createSVGElement( e,attr){
-  var $el = Snap( document.createElementNS('http://www.w3.org/2000/svg', e) )
-  return attr ? $el.attr(attr) : $el
-}
-
-function createSVGText( text ){
-  var $text = createSVGElement('text');
-  $text.node.innerHTML=text;
-  Snap('svg').append($text);
-  $text.data('width',$text.getBBox().width);
-  return $text.remove()
-}
-
-
-function createFnRect($t,attr){
-  var $g = createSVGElement('g').attr('class','fnRect'),
-    $r = createSVGElement('rect', $.extend({
-      x:0,
-      y:0,
-      fill:FILL
-    },attr))
-
-  $t.attr({x:PADDING/2,y:TEXT_FIX})
-
-  return $g.append( $r).append($t)
-}
-
-function tranStr( obj ){
-  return 'translate('+obj.x+','+obj.y+')'
-}
-
-function iteratorLast( obj, branch, fn,ctx ){
-  ctx = ctx||this
-  var end = false,
-    children
-
-  if( isArray(branch) ){
-    if( !branch.every(function(b){ if( eval('obj.'+b) !== undefined) return true})) end= true
-  }else{
-    if( eval('obj.'+b) === undefined ) end = true
-  }
-
-  if( end ){
-    return fn.call(ctx,obj,undefined)
-
-  }else {
-
-    children = isArray(branch) ?
-      branch.map(function (b) {
-        return callIterator( eval('obj.'+b), branch,fn,ctx)
-      }) :
-      callIterator( eval('obj.'+branch,branch,fn,ctx))
-
-    return  fn.call(ctx, obj, children)
-  }
-
-  function callIterator(obj, branch ,fn,ctx){
-    var x = eval('obj.' + branch),
-      childrenRes = isArray(x) ? [] : {}
-
-    forEach( x,function( e, i){
-      childrenRes[i] = iterator(c, branch, fn, ctx)
+    _.forEach(root.models,function(model){
+      root.orm.loadCollection(Waterline.Collection.extend(model))
     })
 
-    return childrenRes
+    return q.promise(function (resolve, reject) {
+      root.orm.initialize(config, function (err, models) {
+        if (err) return reject( err);
+
+        _.extend( root.models , models.collections )
+        root.connections = models.connections;
+
+
+        //add listen to this module
+        //manually use module bus to add listeners
+        extendListener(root)
+//        ZERO.mlog("model","[after extend listener]", root.listen)
+        root.dep.bus.expand(root)
+
+        resolve()
+      });
+    }).fail("err",function(err){
+      ZERO.error( "model fail=====", err)
+    })
   }
-
-}
-
-function buildTree( data, children){
-
-}
-
-function forEach( object, iterator ){
-  if( Object.prototype.toString.call(object) == '[object Array]'){
-    return object.forEach(iterator)
-  }
-
-  for(var i in object){
-    iterator.call( object[i], object[i], i)
-  }
-}
-
-$(function(){
-  $.ajax({
-    url : '/dev/events',
-    success : function(data){
-      var $g = createSVGElement('g'),
-        $diagram = iteratorLast({"/":data},['str','reg'],buildTree,$g)
-
-      console.log($diagram)
-    }
-  })
-})
-</pre>
+}</pre>
 	</article>
 </section>
 

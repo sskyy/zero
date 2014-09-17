@@ -83,17 +83,31 @@ function cloneModel( model,name, bus ){
   return clonedModel
 }
 
+/**
+ * 为所有定义了 models 属性的模块提供 orm 服务。
+ * @module model
+ */
 module.exports = {
   deps : ['bus'],
   orm: new Waterline,
   models : {},
+  /**
+   * 如果模块定义了 models 属性，则读取其中的每个 model 定义，并通过 waterline 来建立 orm 。
+   * 所有建立的 model 对象都将存在此模块的 models 属性中，可以直接调用。
+   * 也可以通过例如 `bus.fire("model.find")` 的方式来调用，推荐使用这种方式。
+   * @param module
+   */
   expand: function (module) {
     var root = this
     if (!module.models) return
 
     module.models.forEach(function (model) {
       //add model placeholder here, so other modules may know what models are registered
-      root.models[model.identity] = model
+      if( root.models[model.identity]){
+        ZERO.warn("duplicated model definition :",model.identity,"from",root.name)
+      }else{
+        root.models[model.identity] = model
+      }
     })
   },
   bootstrap: function () {

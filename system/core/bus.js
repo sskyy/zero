@@ -1,9 +1,5 @@
-var Q = require('q'),
-  _ = require('lodash')
-
 /**
- * Create a Bus instance.
- * Notice the 'events' object will be like this:
+ * @example _events structure
  * {
  *  "{namespace}" : {
  *      "listeners" : [{
@@ -25,9 +21,22 @@ var Q = require('q'),
  *    }
  * }
  *
- * static data in Bus start with "_", runtime data start with "$$"
- * @constructor
- * @param {object} opt - options
+ */
+
+
+
+var Q = require('q'),
+  _ = require('lodash')
+
+
+
+/**
+ * Bus是一个超级事件代理类。除了普通的on/fire操作以外，它还能有以下高级特性：
+ * 1. 指定listener的触发顺序。比如，在最前、最后、在某一个listener前。
+ * 2. 触发某一事件时主动屏蔽某一事件listener。
+ * 等等。
+ * @class
+ * @param {object} opt 选项。`nsSplit`:事件名分隔符;`varSign`:事件参数标志;`varSplit`:参数分隔符;`muteReg`:抑制事件正则;`targetReg`:目标事件正则;`track`:是否追踪调用栈;
  */
 function Bus(opt) {
   this.opt = _.defaults(opt || {}, {
@@ -46,6 +55,10 @@ function Bus(opt) {
   this._forked =0
 }
 
+/**
+ * 衍生出子Bus，它将完全继承已经注册在父Bus上的事件，和所有除了运行时的属性
+ * @returns {Bus} 返回一个新的Bus。
+ */
 Bus.prototype.fork = function () {
   var root = this
 
@@ -66,6 +79,10 @@ Bus.prototype.fork = function () {
   return newEmptyBust
 }
 
+/**
+ * 制作当前Bus的快照，主要用于在追踪调用栈时保存住单枪调用栈的引用。它将复制父Bus的所有属性，包括运行时属性。
+ * @returns {Bus}
+ */
 Bus.prototype.snapshot = function(){
   if( !this._started ){
     console.log("you can only snapshot started bus")
@@ -95,9 +112,10 @@ function isRuntimeAttr(i) {
 
 
 /**
- * reset runtime data
+ * 启动Bus。Bus只有在启动以后，才可以fire事件，并且开始追踪调用栈。
+ * @returns {*}
  */
-Bus.prototype.start = Bus.prototype.restart = function () {
+Bus.prototype.start = function () {
   var root = this
   //runtime mute must be clear every time
   root.empty()
@@ -112,6 +130,8 @@ Bus.prototype.start = Bus.prototype.restart = function () {
   root._started = true
 }
 
+Bus.prototype.restart = Bus.prototype.start
+
 Bus.prototype.empty = function () {
   var root = this
   for (var i in root) {
@@ -121,6 +141,9 @@ Bus.prototype.empty = function () {
   }
 }
 
+/**
+ * 调用栈初始化
+ */
 Bus.prototype.setTracker = function () {
   //set reference to root when start
   this.$$traceRoot = {module:'global',name:'global',stack : []}
@@ -128,6 +151,12 @@ Bus.prototype.setTracker = function () {
 
 }
 
+/**
+ * 往当前Bus里存或者取数据。
+ * @param name 所存数据的名字，如果名字中有`.`，比如`user.name`，那么Bus会自动为你构造好对象结构。你可以继续用`user.age`存数据，用`user`一次性取出。
+ * @param data
+ * @returns {*}
+ */
 Bus.prototype.data = function( name, data){
   if( !this._started ){
     console.log("bus not started")
@@ -187,6 +216,11 @@ function setRef( obj, name, data){
 //  console.log("[BUS] setting done", name, obj)
 }
 
+/**
+ * 设置当前使用Bus的模块名，主要用于和监听函数的函数名一起组成一个唯一的名字，之后就能通过这个名字来设置监听函数的顺序。
+ * @param name
+ * @returns {*|string}
+ */
 Bus.prototype.module = function( name ){
   if( !name ){
     return this.$$module
@@ -197,10 +231,10 @@ Bus.prototype.module = function( name ){
 }
 
 /**
- * Attach a event to the Bus
- * @param {string} eventOrg - original event name with namespace. "" match root.
- * @param {mix} listener - listener can be both function or array
- * @param {mix} opt - for mute and other options
+ * 注册监听器
+ * @param {string} eventOrg 监听的事件名
+ * @param {mix} listener 监听器对象，可以是一个函数，也可以是一个包含了模块名、函数名的对象。
+ * @param {mix} opt 高级选项，可以主动屏蔽到其他监听器。可以指定当前触发器的执行顺序，例如最前或最后。
  */
 Bus.prototype.on = function (eventOrg, listener, opt) {
   var eventRef,
@@ -253,19 +287,21 @@ Bus.prototype.on = function (eventOrg, listener, opt) {
 }
 
 Bus.prototype.standardListener = function (org, opt) {
-  var res = {"name": this.$$module + '.', "function": noop, "module": this.$$module},
-    root = this
+  var  res = {}, root = this
 
   if (typeof org == 'function') {
     res.name += org.name || 'anonymous'
     res.function = org
+    res.module = root.$$module
   } else {
     if (Object.keys(org).length !== 1) {
       res = _.extend(res, org)
-      res.name = res.module + "." + (res.name || 'anonymous')
+      res.module = res.module|| root.$$module
+      res.name = res.module + "." + (res.name || res.function.name || 'anonymous')
     } else {
       var key = Object.keys(org).pop()
-      res.name += key
+      res.module = root.$$module
+      res.name = res.module + "." + key
       res.function = org[key]
     }
   }
@@ -273,13 +309,6 @@ Bus.prototype.standardListener = function (org, opt) {
   if (res.module !== this.$$module) {
     res.vendor = this.$$module
   }
-
-  //add decorator
-  //TODO is it the best way to do it ?
-//  ['before', 'after'].forEach(function (i) {
-//    if (res[i] && res[i].indexOf('.') == -1)
-//      res[i] = root.$$module + '.' + res[i]
-//  })
 
   return res
 }
@@ -379,9 +408,10 @@ function appendChildListeners(stack) {
 
 
 /**
- * @param {string} eventOrg
- * @param {array} args
- * @param {object} opt
+ * 触发事件。
+ * @param {string} eventOrg 事件名
+ * @param {array} args 触发参数
+ * @param {object} opt 高级选项，可以指定屏蔽某一事件或者只触发某一监听器。
  * @returns {object} promise object or array of results returned by listeners
  */
 Bus.prototype.fire = function (eventOrg, args, opt) {
@@ -450,7 +480,7 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
           root.$$traceRef.argv = _.cloneDeep(b.arguments.concat(args))
         }
 
-        console.log("[BUS] appling :", eventOrg, listener.name,listener.module)
+        console.log("[BUS] applying :", eventOrg, listener.name,listener.module)
 
         var res = listener.function.apply(root.snapshot(), b.arguments.concat(args))
 
@@ -568,9 +598,14 @@ function extractPromiseValue( values ){
   })
 }
 
-
-//TODO every time we call then, we create a new promise based on current $$result, better way to do this?
+/**
+ * 注册一个当前Bus内的所有任务执行完后的回调函数，主要用在Bus执行期间有异步任务的时候。
+ * @param cb
+ * @returns {*}
+ */
 Bus.prototype.then = function(cb){
+  //TODO every time we call then, we create a new promise based on current $$result, better way to do this?
+
   var root = this
 
   return nestedBusPromise( root['$$results'] ).then(function( values ){
@@ -578,8 +613,14 @@ Bus.prototype.then = function(cb){
   })
 }
 
-//TODO every time we call fail, we create a new promise based on current $$result, better way to do this?
+/**
+ * 注册一个当前Bus内的所有任务失败完后的回调函数，主要用在Bus执行期间有异步任务的时候
+ * @param cb
+ * @returns {*}
+ */
 Bus.prototype.fail = function(cb){
+  //TODO every time we call fail, we create a new promise based on current $$result, better way to do this?
+
   var root = this
 
   return nestedBusPromise( root['$$results'] ).fail(function( err ){
@@ -591,6 +632,12 @@ function BusError(reason){
   _.extend(this,reason)
 }
 
+/**
+ * 生成一个 error 对象，主要用于在执行过程中返回致命错误来阻止之后的事件继续触发。
+ * @param status 状态码
+ * @param error 错误信息
+ * @returns {*}
+ */
 Bus.prototype.error = function( status, error ){
 
   if( arguments.length == 0 )return this.$$error

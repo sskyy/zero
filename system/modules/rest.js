@@ -9,8 +9,16 @@ var restMap = {
   'destroy' : 'delete'
 }
 
+/**
+ * 为依赖次模块的其他模块的 model 提供 rest 接口
+ * @module rest
+ */
 module.exports = {
   deps : ['respond','model','request'],
+  /**
+   * 如果模块声明的 model 中的 rest 属性为 true, 则自动为该 model 添加 rest 接口。
+   * @param module
+   */
   expand : function( module ){
     //read field `models`
     if( !module.models ) return

@@ -19,24 +19,17 @@ module.exports = function (grunt) {
             zero: {
                 src: [
                      './system/**/*.js',
-
+                     './modules/*/index.js',
+                     './modules/*.js',
                     // You can add README.md file for index page at documentations.
                     'README.md'
                 ],
                 options: {
                     verbose: true,
                     destination: ZERO_DOC_DIST_PATH,
-                    configure: ZERO_DOC_SRC_PATH+'/conf.json',
-                    template: ZERO_DOC_SRC_PATH,
-                    'private': false
+                    template : "node_modules/ink-docstrap/template",
+                    configure : "jsdoc.conf.json"
                 }
-            }
-        },
-
-        less: {
-            dist: {
-                src: ZERO_DOC_SRC_PATH+'/less/**/jaguar.less',
-                dest: ZERO_DOC_SRC_PATH+'/static/styles/jaguar.css'
             }
         },
 
@@ -63,7 +56,6 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('doc', 'Create documentations for zero', [
-        'less',
         'clean:zero',
         'jsdoc:zero'
     ]);
