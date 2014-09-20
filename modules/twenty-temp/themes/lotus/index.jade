@@ -1,0 +1,57 @@
+doctype html
+html
+    head
+        title Test
+        include partials/head.jade
+    body#top
+        header#home
+            nav
+                div.container-fluid
+                    div.row
+                        div.col-md-8.col-md-offset-2.col-sm-8.col-sm-offset-2.col-xs-8.col-xs-offset-2
+                            nav.pull
+                                ul.top-nav
+                                    li
+                                        a( href="#intro" ) Introduction
+                                            span.indicator
+                                                i.fa.fa-angle-right
+                                    li
+                                        a( href="#features" ) Features
+                                            span.indicator
+                                                i.fa.fa-angle-right
+                                    li
+                                        a( href="#responsive" ) Responsive Design
+                                            span.indicator
+                                                i.fa.fa-angle-right
+                                    li
+                                        a( href="#portfolio" ) Portfolio
+                                            span.indicator
+                                                i.fa.fa-angle-right
+                                    li
+                                        a( href="#team" ) Team
+                                            span.indicator
+                                                i.fa.fa-angle-right
+                                    li
+                                        a( href="#contact" ) Get in Touch
+                                            span.indicator
+                                                i.fa.fa-angle-right
+            section#hero.hero
+                div.container
+                    div.row
+                        div.col-md-12.text-right.navicon
+                            a#nav-toggle.nav_slide_button(href="#")
+                                span
+                    div.row
+                        div.col-md-8.col-md-offset-2.text-center.inner
+                            h1.animated.fadeInDown test
+                                span @chris
+                            p.animated.fadeInUp.delay-05s
+                                | An exclusive HTML5/CSS3 freebie by Peter Finlan, for
+                                em xxx
+                    div.row
+                        div.col-md-6.col-md-offset-3.text-center
+                            a.learn-more-btn(herf="http://tympanus.net/codrops/?p=19439")
+                                | Back to the article
+
+        include partials/footer.jade
+        include partials/foot-scripts.jade
