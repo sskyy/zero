@@ -51,7 +51,7 @@ function Bus(opt) {
   this._mute = {}
   this._events = {listeners: [], children: {"str": {}, "reg": {}}}
   this._started = false
-  this._id = 1
+  this._id = 0
   this._forked =0
 }
 
@@ -83,7 +83,11 @@ Bus.prototype.fork = function () {
  * 制作当前Bus的快照，主要用于在追踪调用栈时保存住单枪调用栈的引用。它将复制父Bus的所有属性，包括运行时属性。
  * @returns {Bus}
  */
-Bus.prototype.snapshot = function(){
+Bus.prototype.snapshot = function(options){
+  options = _.defaults(options || {},{
+    exclude : []
+  })
+
   if( !this._started ){
     console.log("you can only snapshot started bus")
     return false
@@ -98,7 +102,9 @@ Bus.prototype.snapshot = function(){
 
   //clone everything include runtime attributes
   for( var i in root ){
-    newSnapshot[i] = root[i]
+    if( options.exclude.indexOf( i) == -1){
+      newSnapshot[i] = root[i]
+    }
   }
 
   newSnapshot._id = root._id * 100 + root._snapshoted + 1
@@ -192,6 +198,7 @@ function getRef( obj, name ){
       break;
     }
   }
+
   return ref
 }
 
@@ -290,14 +297,14 @@ Bus.prototype.standardListener = function (org, opt) {
   var  res = {}, root = this
 
   if (typeof org == 'function') {
-    res.name += org.name || 'anonymous'
-    res.function = org
     res.module = root.$$module
+    res.name = res.module + "."+(org.name || 'anonymous')
+    res.function = org
   } else {
     if (Object.keys(org).length !== 1) {
       res = _.extend(res, org)
       res.module = res.module|| root.$$module
-      res.name = res.module + "." + (res.name || res.function.name || 'anonymous')
+      res.name = res.module + "." + (res.name || (res.function&&res.function.name) || 'anonymous')
     } else {
       var key = Object.keys(org).pop()
       res.module = root.$$module
@@ -426,7 +433,7 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
 
   var caller = arguments.callee.caller.name
 
-  var stack = [ _.extend({arguments: []}, this.$$events || this._events)],
+  var matchedEventStack = [ _.extend({arguments: []}, this.$$events || this._events)],
     eventNs = eventOrg.split(this.opt.nsSplit),
     root = this,
     results = {},
@@ -442,47 +449,50 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
   opt.mute && root.addMute(opt.mute, firer)
 
   if (eventOrg !== "") {
-    stack = getTargetStack(eventNs, stack)
+    matchedEventStack = getTargetStack(eventNs, matchedEventStack)
   }
 
   //will opt.cas to true, it will fire all children listeners
   if (opt.cas) {
-    stack = appendChildListeners(stack)
+    matchedEventStack = appendChildListeners(matchedEventStack)
   }
 
   //save current reference
   currentRef = root.$$traceRef
   if (root.opt.track) {
     //if fire in a promise callback, set the ref to right one
+    //push current listeners to stack
+
+
     root.$$traceRef.stack.push({
       "name": eventOrg,
-      "attached": _.extend([], stack.map(function (i) {
-        var n = _.extend({}, i, true)
-        n.listeners = n.listeners.map(function (l) {
-          l.stack = []
-          return l
+      "attached": matchedEventStack.map( function (matchedEvent ) {
+        var matchedEventRecord = _.cloneDeep(matchedEvent)
+        _.forEach( matchedEventRecord.listeners,function (listener) {
+          listener.stack = []
         })
-        return n
-      }), true)})
+        return matchedEventRecord
+      })})
   }
 
   //fire
   var onError = false
-  stack.every(function (b, i) {
+  matchedEventStack.every(function (matchedEvent, i) {
     if( onError ) return false;//break the loop
-    b.listeners.every(function (listener, j) {
+    matchedEvent.listeners.every(function (listener, j) {
       //set $$traceRef back
 
       var muteList = root.$$mute || root._mute
       if (muteList[listener.name] === undefined) {
         if (root.opt.track) {
+          console.log( "\n",root.$$traceRef.stack ,"\n")
           root.$$traceRef = root.$$traceRef.stack[root.$$traceRef.stack.length - 1].attached[i].listeners[j]
-          root.$$traceRef.argv = _.cloneDeep(b.arguments.concat(args))
+          root.$$traceRef.argv = matchedEvent.arguments.concat( cloneOwnProperties(args))
         }
 
-        console.log("[BUS] applying :", eventOrg, listener.name,listener.module)
+        console.log("[BUS] applying :", eventOrg, listener.module, listener.name)
 
-        var res = listener.function.apply(root.snapshot(), b.arguments.concat(args))
+        var res = listener.function.apply(root.snapshot(), matchedEvent.arguments.concat(args))
 
         if (root.opt.track) {
           if (root.$$traceRef !== currentRef) root.$$traceRef = currentRef
@@ -510,12 +520,17 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
   return nestedBusPromise(results)
 }
 
-Bus.prototype.fireWithDecorator = function( eventOrg, args, opt){
-  var root = this
-  return root.fire( eventOrg + ".before" , args, opt).then( function(){
-    return root.fire( eventOrg, args, opt).then( function(){
-      return root.fire( eventOrg + ".after", args, opt)
-    })
+Bus.prototype.fcall = function( eventOrg, args, fn ){
+  var root = this.snapshot()
+  return root.fire( eventOrg + ".before" , args).then( function(){
+    var result = fn.call(root, args)
+    if(result && _.isFunction(result.then )){
+      return result.then( function(){
+        return root.fire( eventOrg + ".after" , args)
+      })
+    }else{
+      return root.fire( eventOrg + ".after" , args)
+    }
   })
 }
 
@@ -539,14 +554,20 @@ function nestedBusPromise( obj ){
 
   }else if( obj instanceof BusError ){
     defer.reject( obj.status)
-
   }else{
     promiseOrErrorChild = extractPromiseOrErrorChildren(obj)
+    promiseOrErrorChild.map(function(a){
+      console.log(JSON.stringify(a))
+    })
 
     if( promiseOrErrorChild.length ){
       Q.all( promiseOrErrorChild ).then( function(){
+        console.log("all done")
         defer.resolve( extractPromiseValue( obj ) )
-      }).fail(defer.reject)
+      }).fail(function(err){
+        console.log('err',err)
+        defer.reject()
+      })
 
     }else{
       defer.resolve( obj )
@@ -608,9 +629,15 @@ Bus.prototype.then = function(cb){
 
   var root = this
 
-  return nestedBusPromise( root['$$results'] ).then(function( values ){
+  var currentPromiseSnapshot = nestedBusPromise( root['$$results'] ).then(function( values ){
      return cb.call( root, extractPromiseValue( values ) )
   })
+
+  root['$$results']['bus.then.:id'] = root['$$results']['bus.then.:id'] || {}
+  root['$$results']['bus.then.:id']['bus.then.'+root._id] = root['$$results']['bus.then.:id']['bus.then.'+root._id] || []
+  root['$$results']['bus.then.:id']['bus.then.'+root._id].push(currentPromiseSnapshot)
+
+  return currentPromiseSnapshot
 }
 
 /**
@@ -673,6 +700,37 @@ function findIndex(list, iterator) {
   })
 
   return index
+}
+
+function cloneOwnProperties(object){
+  var cached = [object],
+    cachedNamespace = ['root'],
+    result = _.isArray(object) ? [] : {}
+
+  ;(function _cloneOwnProperties(obj,result,namespace){
+    _.forEach(obj,function(v,k){
+      if(_.isObject(obj) && obj.hasOwnProperty &&!obj.hasOwnProperty(k)) return
+
+      var i = cached.indexOf( v)
+
+      if( i !== -1 ){
+        result[k] = "{circular reference of "+cachedNamespace[i]+"}"
+      }else{
+        if( _.isArray(v) || _.isObject(v)){
+          cached.push(v)
+          namespace.push(k)
+          cachedNamespace.push(namespace.join('.') )
+          if(_.isArray(obj)) k = result.length
+          result[k] = _.isArray(v) ? [] : {}
+          _cloneOwnProperties(v, result[k],namespace)
+        }else if( !_.isFunction(v)){
+          result[k] = v
+        }
+      }
+    })
+  })(object,result,[])
+
+  return result
 }
 
 module.exports = Bus

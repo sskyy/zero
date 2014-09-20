@@ -20,9 +20,13 @@ module.exports = {
     }))
   },
   "error" : function( msg ){
-    console.log.apply(global,_.map(arguments, function(r){
-      return _.isString(r) ? r.red : r
-    }))
+    if( msg instanceof Error){
+      console.trace(msg.red)
+    }else{
+      console.log.apply(global,_.map(arguments, function(r){
+        return _.isString(r) ? r.red : r
+      }))
+    }
   },
   "warn" : function( msg ){
     console.log.apply(global,_.map(arguments, function(r){

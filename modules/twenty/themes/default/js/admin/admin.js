@@ -5,43 +5,43 @@ angular.module('admin',['ui.router','admin.post.manage','admin.dashboard','index
       $stateProvider
         .state('dashboard', {
           url : "/",
-          templateUrl: '/twenty/view/templates/dashboard.html',
+          templateUrl: './templates/dashboard.html',
           controller: 'dashboard'
         })
         .state('posts', {
           url : "/posts",
-          templateUrl: '/twenty/view/templates/post-manage.html'
+          templateUrl: './templates/post-manage.html'
         })
         .state('create', {
           url : "/create",
-          templateUrl: '/twenty/view/templates/create.html'
+          templateUrl: './templates/create.html'
         })
         .state('edit', {
           url : "/edit/:id",
-          templateUrl: '/twenty/view/templates/edit.html'
+          templateUrl: './templates/edit.html'
         })
         .state('categories',{
           url : '/categories',
-          templateUrl : '/twenty/view/templates/category-manage.html'
+          templateUrl : './templates/category-manage.html'
         })
         .state('comments',{
           url : '/comments',
-          templateUrl : '/twenty/view/templates/comments.html',
+          templateUrl : './templates/comments.html',
           controller: ''
         })
         .state('statistics',{
           url : '/statistics',
-          templateUrl : '/twenty/view/templates/statistics.html',
+          templateUrl : './templates/statistics.html',
           controller: function(){}
         })
         .state('user',{
           url : '/user',
-          templateUrl : '/twenty/view/templates/user.html',
+          templateUrl : './templates/user.html',
           controller : 'user.edit'
         })
         .state('setting',{
           url : '/setting',
-          templateUrl : '/twenty/view/templates/setting.html'
+          templateUrl : './templates/setting.html'
         })
 
       $urlRouterProvider.otherwise("/");

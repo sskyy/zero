@@ -30,22 +30,25 @@ describe('bus test.',function(){
       event = "someEvent"
 
       bus.on(event+".before",function before(){
-        console.log("before",event)
+        console.log("========before",event)
       })
 
-      bus.on(event,function on(){
-        console.log( "on",event)
-      })
+//      bus.on(event,function on(){
+//        console.log( "on",event)
+//      })
 
     bus.on(event+".after",function after(){
-      console.log( "after",event)
+      console.log( "==========after",event)
     })
 
     bus.start()
-    var res = bus.fireWithDecorator( event).then(function(){
-
-      print( bus.$$traceStack )
-
+    var res = bus.fcall( event,{},function(){
+      console.log("this is =======fn")
+    }).then(function(){
+      console.log("=========")
+      print( bus.$$traceRoot )
+    }).catch(function(err){
+      console.log("====",err)
     })
   })
 

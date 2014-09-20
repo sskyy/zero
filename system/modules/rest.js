@@ -48,7 +48,7 @@ module.exports = {
           ZERO.mlog("REST","fire" , event ,req.params, _.merge(req.params, req.body, req.query))
           req.bus.fire( event, _.merge(req.params, req.body, req.query) ).then( function(){
             //use respond module to help us respond
-            req.bus.data("respond", req.bus.data( modelName + "." + instanceMethod ))
+            req.bus.data("respond.data", _.cloneDeep(req.bus.data( modelName + "." + instanceMethod )))
             next()
           })
         })
@@ -58,7 +58,7 @@ module.exports = {
       //2. add route for model action
       root.dep.request.add('POST /'+modelName + '/:action', function restActionCallback( req, res, next){
         //rest api handled already
-        if( req.bus.data('respond')) return next()
+        if( req.bus.data('respond.data')) return next()
 
         ZERO.mlog("REST", "rest request handler take action", req.bus._id)
         var action = req.param('action')

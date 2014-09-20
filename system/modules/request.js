@@ -24,8 +24,10 @@ function standardCallback(callback, bus, fnForEachReq) {
     //This is important!!! we attach forked bus to every request, so we can use bus to
     req.bus = req.bus || bus.fork()
     req.bus._started || req.bus.start()
-    req.bus.session = req.bus.session || req.session
-
+    req.bus.session = function(name, data){
+      if( !data ) return req.session[name]
+      return req.session[name] = data
+    }
 
 
     if( fnForEachReq ){
@@ -69,7 +71,7 @@ function standardCallback(callback, bus, fnForEachReq) {
  * 该模块可以让其他模块能使用增强后的 express 的路由功能。
  * @module request
  */
-module.exports = {
+var request = {
   deps: ['bus'],
   responds: [],
   routes : new orderedCollection,
@@ -99,6 +101,27 @@ module.exports = {
       APP.route(route.url)[route.method](route.handler.function)
     })
   },
+  listen : {
+    'request.mock' : function mockRequest( route ){
+      var reqAgent = _.clone(route.req),
+        resAgent = _.clone(route.res)
+
+      reqAgent.path = route.url
+      reqAgent.isFirstAgent = !route.req.isAgent
+      reqAgent.isAgent = true
+      reqAgent.bus = this
+      reqAgent.__proto__ = route.req.__proto__
+
+      resAgent.status = function(){return this}
+      resAgent.send = _.noop
+      resAgent.end = _.noop
+      resAgent.json = _.noop
+      resAgent.render = _.noop
+      resAgent.isAgent = true
+      resAgent.__proto__ = route.res.__proto__
+      return request.triggerRequest( route.url, route.method, reqAgent, resAgent )
+    }
+  },
   //api
   /**
    * 添加一个对某一个 url 进行处理的路由函数，可以使用参数 order 来控制路由函数触发的顺序。用法见 orderedCollection 。
@@ -126,6 +149,7 @@ module.exports = {
     root.routes.push( route, route.handler.name,  route.handler.order  )
     ZERO.mlog("request","adding route", route.url, route.method )
   },
+
   getRouteHandlers : function( url, method ){
     var root = this,
       matchedParams,
@@ -136,7 +160,8 @@ module.exports = {
 
       matchedParams = root.matchUrl( url, route.url)
       if( matchedParams ){
-        handlers.push(_.extend({}, route.handler, {params:matchedParams}))
+
+        handlers.push(_.extend({}, route.handler, {params:matchedParams,matchedUrl:route.url}))
       }
     })
 
@@ -149,29 +174,41 @@ module.exports = {
    * @param req {object} 传入原始的 req 对象。
    * @param res {object} 传入原始的 req 对象。
    */
-  triggerRequest : function( url, method, req, res ){
+  triggerRequest : function( url, method, reqAgent, resAgent ){
     ZERO.mlog("request","trigger request", url, method)
 
     var root = this,
-      handlers = root.getRouteHandlers(url, method),
-      reqAgent = _.clone(req),
-      resAgent = _.clone(res)
+      handlers = root.getRouteHandlers(url, method)
 
-    resAgent.status = function(){
-      return resAgent
-    }
+    return q.Promise(function(resolve,reject){
+      resAgent.status = function(){return resAgent}
+      resAgent.send = resEnd
+      resAgent.sendFile = resEnd
+      resAgent.end = resEnd
+      resAgent.json = resEnd
+      resAgent.render = resEnd
 
-    resAgent.send = _.noop
-    resAgent.json = _.noop
+      triggerHandler(0)
 
-    triggerHandler(0)
+      function resEnd(){
+        resolve()
+      }
 
-    function triggerHandler(i){
-      if( !handlers[i]) return
+      function triggerHandler(i,err){
+        if( err ){
+          console.log("find err",err)
+          return reject()
+        }
+        if( !handlers[i]){
+          console.log("trigger request",url,'done')
+          return resolve()
+        }
 
-      reqAgent.params = _.isObject( handlers[i].params ) ? handlers[i].params : {}
-      handlers[i].function( reqAgent,resAgent, _.partial(triggerHandler,++i))
-    }
+        reqAgent.params = _.isObject( handlers[i].params ) ? handlers[i].params : {}
+        handlers[i].function( reqAgent,resAgent, _.partial(triggerHandler,++i))
+      }
+    })
+
   },
   matchUrl : function( url, wildcard ){
     if( url == wildcard ) return true
@@ -195,3 +232,5 @@ module.exports = {
 
   }
 }
+
+module.exports = request

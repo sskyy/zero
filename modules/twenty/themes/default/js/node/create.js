@@ -24,7 +24,7 @@ angular.module('node.create', ['textAngular', 'node.upload','node.index'])
       }
 
       $http.post('/'+type, toPlainObject($scope.node)).success(function (node) {
-        window.location.href = "/page/"+type+'/' + node.id
+        window.location.href = "./"+type+'/' + node.id
       }).error(function (err) {
         console.log(err)
       })

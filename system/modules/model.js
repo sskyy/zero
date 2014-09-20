@@ -32,6 +32,7 @@ var lifeCycleCallback =[
 ]
 
 function extendListener(module) {
+  //TODO listen model:action
   module.listen = {}
 
   _.forEach( module.models, function( model, name){
@@ -106,7 +107,9 @@ module.exports = {
       if( root.models[model.identity]){
         ZERO.warn("duplicated model definition :",model.identity,"from",root.name)
       }else{
-        root.models[model.identity] = model
+        root.models[model.identity] = _.defaults(model,{
+          migrate : 'safe'
+        })
       }
     })
   },
