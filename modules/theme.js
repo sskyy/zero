@@ -159,13 +159,22 @@ module.exports = {
   findPage : function( cache, restRoute, themePath ){
     var root = this
     //TODO find the right view file
-    var i, templateName, templatePath, tmp = restRoute.url.slice(1).split("/"),extension
+    var i, templateName, templatePath, tmp = restRoute.url.slice(1).split("/"), extension
 
     if( tmp.length == 1){
-      //deal with basic crud action pages
-      templateName = tmp.concat(root.config.crudMap[restRoute.method]).join('-')
-      templatePath = path.join( appUrl, themePath, templateName)
-      extension = findExtension( cache.page,root.config.engines,templatePath )
+
+      // 测试代码, 优先找到符合条件的页面，如果没有找到，则按照crud action pages的方式寻找？
+      templateName = tmp[0]
+      templatePath = path.join( appUrl, themePath, templateName )
+      extension = findExtension( cache.page,root.config.engines, templatePath )
+
+      if (!extension) {
+        //deal with basic crud action pages
+        templateName = tmp.concat(root.config.crudMap[restRoute.method]).join('-')
+        templatePath = path.join( appUrl, themePath, templateName)
+        extension = findExtension( cache.page,root.config.engines,templatePath )
+      }
+
     }else{
       for( i = tmp.length;i>0; i--){
         templateName = tmp.slice(0,i).join('-')
