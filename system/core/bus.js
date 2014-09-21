@@ -80,7 +80,7 @@ Bus.prototype.fork = function () {
 }
 
 /**
- * 制作当前Bus的快照，主要用于在追踪调用栈时保存住单枪调用栈的引用。它将复制父Bus的所有属性，包括运行时属性。
+ * 制作当前Bus的快照，主要用于在追踪调用栈时保存住当前调用栈的引用。它将复制父Bus的所有属性，包括运行时属性。
  * @returns {Bus}
  */
 Bus.prototype.snapshot = function(options){
@@ -485,7 +485,6 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
       var muteList = root.$$mute || root._mute
       if (muteList[listener.name] === undefined) {
         if (root.opt.track) {
-          console.log( "\n",root.$$traceRef.stack ,"\n")
           root.$$traceRef = root.$$traceRef.stack[root.$$traceRef.stack.length - 1].attached[i].listeners[j]
           root.$$traceRef.argv = matchedEvent.arguments.concat( cloneOwnProperties(args))
         }
@@ -522,17 +521,25 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
 
 Bus.prototype.fcall = function( eventOrg, args, fn ){
   var root = this.snapshot()
-  return root.fire( eventOrg + ".before" , args).then( function(){
+  var result = root.fire( eventOrg + ".before" , args).then( function(){
     var result = fn.call(root, args)
     if(result && _.isFunction(result.then )){
+      console.log("here")
       return result.then( function(){
         return root.fire( eventOrg + ".after" , args)
+      }).fail(function(err){
+        console.log("err",err)
       })
     }else{
       return root.fire( eventOrg + ".after" , args)
     }
   })
+
+  root['$$results'][eventOrg+".fcall"] = result
+
+  return result
 }
+
 
 /************************/
 /*  Promise extension   */
@@ -556,16 +563,11 @@ function nestedBusPromise( obj ){
     defer.reject( obj.status)
   }else{
     promiseOrErrorChild = extractPromiseOrErrorChildren(obj)
-    promiseOrErrorChild.map(function(a){
-      console.log(JSON.stringify(a))
-    })
 
     if( promiseOrErrorChild.length ){
       Q.all( promiseOrErrorChild ).then( function(){
-        console.log("all done")
         defer.resolve( extractPromiseValue( obj ) )
       }).fail(function(err){
-        console.log('err',err)
         defer.reject()
       })
 
@@ -587,7 +589,6 @@ function extractPromiseOrErrorChildren(obj, resultContainer){
       resultContainer.push( v )
 
     }else if(v instanceof BusError){
-      console.log("error name", name)
 
       resultContainer.push( rejectedPromise(v.status) )
 
@@ -636,6 +637,9 @@ Bus.prototype.then = function(cb){
   root['$$results']['bus.then.:id'] = root['$$results']['bus.then.:id'] || {}
   root['$$results']['bus.then.:id']['bus.then.'+root._id] = root['$$results']['bus.then.:id']['bus.then.'+root._id] || []
   root['$$results']['bus.then.:id']['bus.then.'+root._id].push(currentPromiseSnapshot)
+
+  console.log("============inside then",root['$$results'])
+
 
   return currentPromiseSnapshot
 }

@@ -104,12 +104,14 @@ var request = {
   listen : {
     'request.mock' : function mockRequest( route ){
       var reqAgent = _.clone(route.req),
-        resAgent = _.clone(route.res)
+        resAgent = _.clone(route.res),
+        bus = this,
+        snapshot = bus.snapshot()
 
       reqAgent.path = route.url
       reqAgent.isFirstAgent = !route.req.isAgent
       reqAgent.isAgent = true
-      reqAgent.bus = this
+      reqAgent.bus = bus._origin.fork() //fork a new bus!!!
       reqAgent.__proto__ = route.req.__proto__
 
       resAgent.status = function(){return this}
@@ -119,7 +121,13 @@ var request = {
       resAgent.render = _.noop
       resAgent.isAgent = true
       resAgent.__proto__ = route.res.__proto__
-      return request.triggerRequest( route.url, route.method, reqAgent, resAgent )
+      return request.triggerRequest( route.url, route.method, reqAgent, resAgent).then(function(){
+        //merge $$traceStack back
+        console.log("mergin stacks")
+        snapshot.$$traceRef.stack = reqAgent.bus.$$traceRoot.stack
+      }).fail(function(err){
+        console.log("mergin stack failed",err)
+      })
     }
   },
   //api
