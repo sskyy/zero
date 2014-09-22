@@ -81,12 +81,10 @@ exports.loadAll = function (opt, cb) {
   var systemModules = requireModules(opt.systemModulePath, opt.modules),
   userModules = _.mapValues(requireModules(opt.modulePath, opt.modules ),function(module){
     module.deps = module.deps || Object.keys( systemModules )
-    //TODO notice! we attached app to every module
     return module
   })
 
-  modules = _.mapValues( _.merge( systemModules, userModules), function(module, name){
-    module.app = app
+  modules = _.mapValues( _.extend({}, systemModules, userModules), function(module, name){
     module.name = name
     return module
   })
