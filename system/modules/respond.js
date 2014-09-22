@@ -21,7 +21,7 @@ module.exports = {
             var respond = req.bus.data('respond')
 
             if( !respond ){
-              ZERO.mlog("respond"," NOTHING HAPPENED", bus._id )
+              ZERO.mlog("respond"," NOTHING HAPPENED", req.bus._id )
               res.status(404)
               res.send("404")
             }else{
