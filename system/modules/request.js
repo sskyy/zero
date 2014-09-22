@@ -98,6 +98,7 @@ var request = {
     var root = this
 
     root.routes.forEach(function ( route ) {
+      ZERO.mlog("request","attaching route", route.url, route.method, route.handler.name)
       APP.route(route.url)[route.method](route.handler.function)
     })
   },
@@ -155,7 +156,6 @@ var request = {
 
     //save it! other module may need
     root.routes.push( route, route.handler.name,  route.handler.order  )
-    ZERO.mlog("request","adding route", route.url, route.method )
   },
 
   getRouteHandlers : function( url, method ){
