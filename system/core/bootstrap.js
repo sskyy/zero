@@ -1,25 +1,38 @@
 var loader = require('./loader'),
   q = require('q'),
-  _ = require('lodash')
+  _ = require('lodash'),
+  orderedCollection = require('./orderedCollection')
 
 module.exports = function( app, opt, cb ){
 
   return loader.loadAll.call(app, opt, function(){
+    var bootstraps = new orderedCollection,
+      bootstrapResults = []
+
+    _.forEach(app.modules,function(module){
+      if( module.bootstrap ){
+        bootstraps.push( module, module.name+".bootstrap", module.bootstrap.order || false )
+      }
+    })
+
     try{
-      var strap = _.reduce(app.modules,function(a, b){
 
-        ZERO.mlog("bootstrap", b.name)
+      bootstraps.forEach(function( module ){
+
+        ZERO.mlog("bootstrap", module.name)
         //when every module is initialized, call their bootstrap function
-        var bootstrapResult = _.isFunction(b.bootstrap) ? b.bootstrap.call(b) : []
+        var bootstrapResult = _.isFunction(module.bootstrap) ?
+          module.bootstrap.call(module) :
+          (_.isFunction(module.bootstrap.function) && module.bootstrap.function.call(module))
 
-        return a.concat( bootstrapResult )
-      },[])
+        bootstrapResults.push(bootstrapResult )
+      })
+
     }catch(e){
-      ZERO.error("bootstrap error",e)
+      ZERO.error(e)
     }
 
-
-    q.all( strap )
+    q.all( bootstrapResults )
       .then(cb)
       .fail( function(err){
       ZERO.error( err)
