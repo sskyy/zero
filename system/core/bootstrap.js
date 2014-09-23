@@ -10,6 +10,7 @@ module.exports = function( app, opt, cb ){
       bootstrapResults = []
 
     _.forEach(app.modules,function(module){
+
       if( module.bootstrap ){
         bootstraps.push( module, module.name+".bootstrap", module.bootstrap.order || false )
       }

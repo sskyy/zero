@@ -32,7 +32,7 @@ function linkBefore ( obj1, obj2){
     obj2.prev = obj1.prev
     obj2.prev.next = obj2
   }
-
+  obj1.prev = obj2
 }
 
 orderedCollection.prototype.store = function(obj){
@@ -89,9 +89,14 @@ orderedCollection.prototype.append = function( obj ){
     while( i.prev && i.prev.order && i.prev.order.last ){
       i = i.prev
     }
+
+    if(i.order.last){
+      linkBefore( i, obj)
+    }else{
+      linkAfter( i,obj)
+    }
   }
 
-  linkBefore( i, obj)
   this.store(obj)
 }
 
@@ -138,9 +143,7 @@ orderedCollection.prototype.after = function( obj, who ) {
 
 orderedCollection.prototype.push = function( item, key, order){
   var obj = _.zipObject( ['item','key','order'],[item,key,order])
-
   if( !order ){
-
     this.append( obj )
 
   }else if( order.first ){
