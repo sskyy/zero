@@ -27,17 +27,13 @@ var rbac = {
   applyRoleToCurrentUser : function applyRoleToCurrentUser(req, res,next){
 
     var  rolesToApply = Object.keys( rbac.acl.roles )
-    console.log("applying roles",rbac.acl.roles )
 
     applyNext(0)
 
     function applyNext( n ){
       if( !rolesToApply[n] ){
-        console.log("applying done", req.session.user.roles)
         return next()
       }
-
-      console.log( "applying",rolesToApply[n],rbac.acl.roles )
 
       var applyResult = rbac.acl.roles[rolesToApply[n]]( req )
       if( applyResult && applyResult.then ){
@@ -60,7 +56,6 @@ var rbac = {
     rbac.route = _.mapValues( this.acl.routes, function( rolesNeeded ){
       return {
         "function": function checkRole(req, res, next) {
-          console.log("checking roles",rolesNeeded)
           _.intersection(req.session.user.roles, rolesNeeded).length == rolesNeeded.length ?
             next() :
             res.status(403).end()
