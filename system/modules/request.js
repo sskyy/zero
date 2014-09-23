@@ -5,7 +5,7 @@ var _ = require('lodash'),
 function standardRoute(url) {
   var result = { url: null, method: null}
 
-  if (/\S+\s+\/\w+/.test(url)) {
+  if (/^(GET|POST|DELETE|PUT)\s+(\/[\w\*]+|\*)/.test(url)) {
     var urlArray = url.split(/\s+/)
     result.method = urlArray[0].toLowerCase()
     result.url = urlArray[1]
@@ -124,8 +124,9 @@ var request = {
       resAgent.__proto__ = route.res.__proto__
       return request.triggerRequest( route.url, route.method, reqAgent, resAgent).then(function(){
         //merge $$traceStack back
-        console.log("mergin stacks")
+        console.log("mergin stacks and data")
         snapshot.$$traceRef.stack = reqAgent.bus.$$traceRoot.stack
+        _.merge(snapshot.$$data, reqAgent.bus.$$data )
       }).fail(function(err){
         console.log("mergin stack failed",err)
       })
