@@ -11,13 +11,12 @@ module.exports = {
       "function" :function respondHandler( req, res, next){
 //        if( req.isAgent && !req.isFirstAgent) return next && next()
 
-        ZERO.mlog("respond"," respond default handler take action",req.bus._id,req.isAgent)
+        ZERO.mlog("respond"," respond default handler take action","isAgent:",req.isAgent)
 
         //must wait all result resolved!
-        console.log("register then first")
+        console.log("respond bus.then register!!!",req.bus['$$results'])
         req.bus.then(function(){
-          console.log("excute first")
-          return req.bus.fcall('respond.respond', {} , function(){
+          console.log("respond bus.then execute ")
             var respond = req.bus.data('respond')
 
             if( !respond ){
@@ -28,14 +27,19 @@ module.exports = {
               ZERO.mlog("respond"," success respond")
 
               if( respond.file ){
-                res.sendFile( respond.file)
+                return req.bus.fire('respond.file.before', respond).then(function(){
+                  res.sendFile( respond.file)
+                })
               }else if( respond.page ){
-                res.render( respond.page, respond.data||{})
+                return req.bus.fire('respond.page.before', respond).then(function() {
+                  res.render(respond.page, respond.data || {})
+                })
               }else{
-                res.json( respond.data || {} )
+                return req.bus.fire('respond.data.before', respond).then(function() {
+                  res.json(respond.data || {})
+                })
               }
             }
-          })
         }).fail(function( err ){
           console.log(err)
           ZERO.error(err)
