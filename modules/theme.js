@@ -108,7 +108,9 @@ module.exports = {
 
           bus.fire('request.mock', fireParams)
 
-          return bus.then(function(){
+          //Don't return bus.then in `bus.fcall` !!! this may never end.
+          console.log("theme bus register!!!!")
+          bus.then(function(){
             ZERO.mlog("THEME","model action done", restRoute.url)
 
             page = root.findPage(root.cache[module.name],restRoute,themePath)
