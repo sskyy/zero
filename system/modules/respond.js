@@ -14,7 +14,6 @@ module.exports = {
         ZERO.mlog("respond"," respond default handler take action","isAgent:",req.isAgent)
 
         //must wait all result resolved!
-        console.log("respond bus.then register!!!",req.bus['$$results'])
         req.bus.then(function(){
           console.log("respond bus.then execute ")
             var respond = req.bus.data('respond')
@@ -24,7 +23,7 @@ module.exports = {
               res.status(404)
               res.send("404")
             }else{
-              ZERO.mlog("respond"," success respond")
+              ZERO.mlog("respond"," <---------------success respond------------->",respond.file,respond.page)
 
               if( respond.file ){
                 return req.bus.fire('respond.file.before', respond).then(function(){

@@ -107,4 +107,18 @@ describe('bus test.',function(){
     })
 
   })
+
+  it("should merge data",function(){
+    var bus = (new Bus({track:false})).fork()
+
+    bus.start()
+    console.log("=========>>>>>>>>")
+
+    bus.data('respond.data',{id:11,name:'111'})
+
+    console.log("=========")
+    bus.data('respond.data',{duoshuo:123123})
+    console.log( bus.$$data )
+    assert.equal( 3, Object.keys( bus['$$data'].respond.data).length)
+  })
 })

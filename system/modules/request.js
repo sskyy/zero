@@ -124,11 +124,9 @@ var request = {
       resAgent.__proto__ = route.res.__proto__
       return request.triggerRequest( route.url, route.method, reqAgent, resAgent).then(function(){
         //merge $$traceStack back
-        console.log("mergin stacks and data")
         snapshot.$$traceRef.stack = reqAgent.bus.$$traceRoot.stack
         _.merge(snapshot.$$data, reqAgent.bus.$$data )
       }).fail(function(err){
-        console.log("mergin stack failed",err)
       })
     }
   },
@@ -159,12 +157,12 @@ var request = {
     root.routes.push( route, route.handler.name,  route.handler.order  )
   },
 
-  getRouteHandlers : function( url, method ){
+  getRouteHandlers : function( url, method, routes){
     var root = this,
       matchedParams,
       handlers = []
 
-    root.routes.forEach( function( route ){
+    routes.forEach( function( route ){
       if( method && route.method !== 'all' && method !== route.method ) return
 
       matchedParams = root.matchUrl( url, route.url)
@@ -187,7 +185,7 @@ var request = {
     ZERO.mlog("request","trigger request", url, method)
 
     var root = this,
-      handlers = root.getRouteHandlers(url, method)
+      handlers = root.getRouteHandlers(url, method, root.routes)
 
     return q.Promise(function(resolve,reject){
       resAgent.status = function(){return resAgent}
@@ -205,11 +203,11 @@ var request = {
 
       function triggerHandler(i,err){
         if( err ){
-          console.log("find err",err)
+          ZERO.error("trigger request err",err)
           return reject()
         }
         if( !handlers[i]){
-          console.log("trigger request",url,'done')
+          ZERO.mlog("request","trigger request",url,'done')
           return resolve()
         }
 
@@ -239,7 +237,8 @@ var request = {
 
     return matches ? _.zipObject( keys, matches.slice(1) ) : false
 
-  }
+  },
+  standardRoute : standardRoute
 }
 
 module.exports = request

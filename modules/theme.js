@@ -28,6 +28,117 @@ function findExtension( collection, exts, item){
   return _.find( exts, function( ext ){ return collection[item+"."+ext]})
 }
 
+function generateThemeHandler( module){
+  var root = this
+
+  var matchRoute = path.join("/"+ (root.config.omitModule?"":module.name), (module.theme.prefix?module.theme.prefix:"")) ,
+    themePath = path.join('modules',module.name, module.theme.directory )
+
+
+  return function( req, res, next ){
+    var restRoute = {
+        url:req.path.replace( matchRoute , ""),
+        method : req.param('_method') || 'get'
+      },
+      cachePath = path.join( appUrl, themePath, restRoute.url),
+      page
+
+
+    var fireParams = _.extend({},restRoute,{req:req,res:res})
+
+    req.bus.fcall("theme.render", fireParams, function(){
+      var bus = this
+      if( root.cache[module.name].statics[cachePath] ) {
+        //1. check if current view route match any static files
+//        ZERO.mlog("THEME","find static file", cachePath)
+        bus.data('respond.file', cachePath)
+
+      }else if( root.dep.model.models[restRoute.url.split("/")[1]] !== undefined ){
+        //2. check if current view route match any model api
+        ZERO.mlog("THEME","find model match", restRoute)
+
+        bus.fire('request.mock', fireParams)
+
+        //Don't return bus.then in `bus.fcall` !!! this may never end.
+        bus.then(function(){
+          ZERO.mlog("THEME","model action done", restRoute.url)
+
+          page = root.findPage(root.cache[module.name],restRoute,themePath)
+
+          if( page ){
+            ZERO.mlog("THEME","find template", page, bus.data('respond'))
+            bus.data('respond.page', page)
+            //merge locals
+            return getLocals.call(root, root.locals, {url:req.path,method:'get'}).then(function( locals ){
+
+              bus.data('respond.data',locals)
+            })
+          }else{
+            ZERO.mlog("THEME"," can't find template", page)
+          }
+        }).fail(function(err){
+          console.log(err)
+          ZERO.error(err)
+        })
+
+      }else if(page = root.findPage(root.cache[module.name],restRoute,themePath)){
+        //3. check if current view route match any page
+        ZERO.mlog("THEME"," find view page match", restRoute.url)
+
+        //deal with locals
+        bus.data( 'respond.page',page )
+        return getLocals.call(root, root.locals, {url:req.path,method:'get'}).then(function( locals ){
+          bus.data('respond.data',locals)
+        })
+      }else{
+        ZERO.mlog("THEME"," cannot find any match",JSON.stringify(restRoute),cachePath)
+      }
+    }).then(function(){
+      next()
+    }).catch(function(err){
+      console.log( err )
+      ZERO.error(err)
+    })
+  }
+}
+
+function getLocals( locals, route ){
+  var root = this
+
+  return q.Promise(function( resolve, reject){
+    var matchedHandlers = root.dep.request.getRouteHandlers( route.url, route.method, locals),
+      results = {}
+    ZERO.mlog("theme","getLocals", route.url)
+
+    applyNext(0)
+
+    function applyNext( n ){
+      if( !matchedHandlers[n] ){
+        return resolve(results)
+      }
+
+      if(_.isFunction( matchedHandlers[n].data)){
+        var applyResult = matchedHandlers[n].data(req)
+        if( applyResult && applyResult.then ){
+          applyResult.fin(function(){
+            applyNext(++n)
+          })
+        }else{
+          applyNext(++n)
+        }
+      }else{
+        if(_.isPlainObject( matchedHandlers[n].data )){
+          _.merge( results, matchedHandlers[n].data)
+        }
+        applyNext(++n)
+      }
+
+    }
+  })
+
+
+}
+
 /**
  * @description
  * 为所有依赖该模块并声明了 theme 属性的模块提供主题服务。
@@ -54,6 +165,8 @@ module.exports = {
     'crudMap' : {'get':'list','post':'create','put':'update','delete':'destroy'}
   },
   cache : {},
+  route : {},
+  locals : [],
   /**
    * @param module
    * @returns {boolean}
@@ -61,15 +174,11 @@ module.exports = {
   expand : function( module ){
     if( !module.theme ) return false
 
-    var root = this,
-      matchRoute = path.join("/"+ (root.config.omitModule?"":module.name), (module.theme.prefix?module.theme.prefix:"")) ,
-      themePath = path.join('modules',module.name, module.theme.directory )
-
-
+    var root = this
     root.cache[module.name] = {}
 
-    //serve all files in this directory as template, using default conventions
-    root.route = root.route || {}
+    var matchRoute = path.join("/"+ (root.config.omitModule?"":module.name), (module.theme.prefix?module.theme.prefix:"")) ,
+      themePath = path.join('modules',module.name, module.theme.directory)
 
     //cache all files
     var pages = walk(path.join(appUrl, themePath), function( f){ return _.indexOf(root.config.engines, f.split(".").pop()) !== -1}),
@@ -79,84 +188,16 @@ module.exports = {
       statics:_.zipObject( statics,  fill(statics.length, true))
     }
 
-
     ZERO.mlog("THEME","route",matchRoute)
 
-    var reqHandler =  function( req, res, next ){
+    root.dep.request.add( matchRoute + "/*",generateThemeHandler.call(root,module) )
 
-
-      var restRoute = {
-          url:req.path.replace( matchRoute , ""),
-          method : req.param('_method') || 'get'
-        },
-        cachePath = path.join( appUrl, themePath, restRoute.url),
-        page
-
-
-      var fireParams = _.extend({},restRoute,{req:req,res:res})
-
-      req.bus.fcall("theme.render", fireParams, function(){
-        var bus = this
-        if( root.cache[module.name].statics[cachePath] ) {
-          //1. check if current view route match any static files
-//        ZERO.mlog("THEME","find static file", cachePath)
-          bus.data('respond.file', cachePath)
-
-        }else if( root.dep.model.models[restRoute.url.split("/")[1]] !== undefined ){
-          //2. check if current view route match any model api
-          ZERO.mlog("THEME","find model match", restRoute)
-
-          bus.fire('request.mock', fireParams)
-
-          //Don't return bus.then in `bus.fcall` !!! this may never end.
-          console.log("theme bus register!!!!")
-          bus.then(function(){
-            ZERO.mlog("THEME","model action done", restRoute.url)
-
-            page = root.findPage(root.cache[module.name],restRoute,themePath)
-
-            if( page ){
-              ZERO.mlog("THEME","find template", page, bus.data('respond'))
-              bus.data('respond.page', page)
-            }else{
-              ZERO.mlog("THEME"," can't find template", page)
-            }
-          }).fail(function(err){
-            console.log(err)
-            ZERO.error(err)
-          })
-
-        }else if(page = root.findPage(root.cache[module.name],restRoute,themePath)){
-          //3. check if current view route match any page
-          ZERO.mlog("THEME"," find view page match", restRoute.url)
-
-          if(  module.theme.locals && module.theme.locals[restRoute.url]){
-            if(_.isFunction(module.theme.locals[restRoute.url])){
-              module.theme.locals[restRoute.url]( req, res )
-              return bus.then(function(){
-                bus.data( 'respond.page',page )
-              })
-            }else{
-              bus.data( 'respond.page',page )
-              bus.data('respond.data', module.theme.locals[restRoute.url] )
-            }
-          }else{
-            bus.data( 'respond.page',page )
-          }
-        }else{
-          ZERO.mlog("THEME"," cannot find any match",JSON.stringify(restRoute),cachePath)
-        }
-      }).then(function(){
-        next()
-      }).catch(function(err){
-        console.log( err )
-        ZERO.error(err)
+    if( module.theme.locals ){
+      _.forEach( module.theme.locals, function( data, url ){
+        root.locals.push(_.extend(root.dep.request.standardRoute( url ),{handler:{data:data}}))
       })
-
-
     }
-
-    root.dep.request.add( matchRoute + "/*",reqHandler )
+    //standard all routes
   },
   findPage : function( cache, restRoute, themePath ){
     var root = this
