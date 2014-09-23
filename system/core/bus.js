@@ -213,12 +213,19 @@ function setRef( obj, name, data){
     if( _.isObject(ref) && ref[currentName]){
       ref = ref[currentName]
     }else{
-      ref[currentName] = {}
-      ref = ref[currentName]
+      if( ns.length == 0 ){
+        if( _.isPlainObject(ref[currentName] )){
+          _.merge(ref[currentName],data)
+        }else{
+          if( ref[currentName] !== undefined ) console.log("you are changing a exist data",name)
+          ref[currentName] = data
+        }
+      }else{
+        ref[currentName] = {}
+        ref = ref[currentName]
+      }
     }
   }
-  //TODO better way?
-  eval("obj."+name +"=data")
 
 //  console.log("[BUS] setting done", name, obj)
 }
@@ -637,8 +644,6 @@ Bus.prototype.then = function(cb){
   root['$$results']['bus.then.:id'] = root['$$results']['bus.then.:id'] || {}
   root['$$results']['bus.then.:id']['bus.then.'+root._id] = root['$$results']['bus.then.:id']['bus.then.'+root._id] || []
   root['$$results']['bus.then.:id']['bus.then.'+root._id].push(currentPromiseSnapshot)
-
-  console.log("============inside then",root['$$results'])
 
 
   return currentPromiseSnapshot
