@@ -27,13 +27,12 @@ function linkAfter ( obj1, obj2 ){
 function linkBefore ( obj1, obj2){
   if( !obj1 || !obj2 ) return
 
-  obj2.next = obj1
+gi  obj2.next = obj1
   if( obj1.prev ){
     obj2.prev = obj1.prev
     obj2.prev.next = obj2
   }
 
-  obj1.prev = obj2
 }
 
 orderedCollection.prototype.store = function(obj){
@@ -49,25 +48,30 @@ orderedCollection.prototype.store = function(obj){
 
   if( this._waitingForOrder[obj.key] ){
     this._waitingForOrder[obj.key].forEach(function(waitingObj){
-      if( waitingObj.before ){
-        linkBefore( obj )
-      }else if( waitingObj.after ){
-        linkAfter(obj)
+      if( waitingObj.order.before ){
+        console.log("calling from here", obj.key,waitingObj.key)
+        linkBefore(  obj, waitingObj )
+      }else if( waitingObj.order.after ){
+        console.log("calling from here2", obj.key,waitingObj.key)
+
+        linkAfter( obj, waitingObj )
       }else{
         console.log("you put wrong obj in waiting collection",obj)
       }
     })
+    console.log("deleting waiting object for",obj.key)
     delete this._waitingForOrder[obj.key]
   }
 
   this.length ++
   this.resetHeadAndTail()
+
 }
 
 orderedCollection.prototype.resetHeadAndTail = function(){
-  if( this.length ==  1 ){
-    this.head = this._collection[Object.keys(this._collection)[0]]
-    this.tail = this._collection[Object.keys(this._collection)[0]]
+  if( this.head == null ){
+    var first = _.find(this._collection,function(o){return !o.isWaiting})
+    this.head = this.tail = first || null
   }else{
     while( this.head.prev){
       this.head = this.head.prev
@@ -80,7 +84,14 @@ orderedCollection.prototype.resetHeadAndTail = function(){
 
 
 orderedCollection.prototype.append = function( obj ){
-  linkAfter( this.tail, obj)
+  var i = this.tail
+  if( this.tail ){
+    while( i.prev && i.prev.order && i.prev.order.last ){
+      i = i.prev
+    }
+  }
+
+  linkBefore( i, obj)
   this.store(obj)
 }
 
@@ -90,12 +101,16 @@ orderedCollection.prototype.prepend = function( obj ){
 }
 
 orderedCollection.prototype.before = function( obj, who ){
-
   if(_.isArray(this._collection[who])){
     throw new Error("err you are trying to insert an object before a collection!")
   }else if( this._collection[who] ){
-    linkBefore(this._collection[who], obj)
+    var i = this._collection[who]
+    while( i.prev && i.prev.order && i.prev.order.last ){
+      i = i.prev
+    }
+    linkBefore(i, obj)
   }else{
+    obj.isWaiting = true
     this._waitingForOrder[who] = this._waitingForOrder[who] || []
     this._waitingForOrder[who].push(obj)
   }
@@ -104,7 +119,6 @@ orderedCollection.prototype.before = function( obj, who ){
 }
 
 orderedCollection.prototype.after = function( obj, who ) {
-  this.store(obj)
 
   if(_.isArray(this._collection[who])){
     throw new Error("you are trying to insert an object after a collection!")
@@ -114,6 +128,7 @@ orderedCollection.prototype.after = function( obj, who ) {
       this.tail = obj
     }
   }else{
+    obj.isWaiting = true
     this._waitingForOrder[who] = this._waitingForOrder[who] || []
     this._waitingForOrder[who].push(obj)
   }
