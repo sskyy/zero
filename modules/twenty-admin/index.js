@@ -1,11 +1,11 @@
 var q = require('q')
 
 var admin = {
-  deps : ['rbac', 'model'],
+  deps : ['rbac', 'model','statistic'],
   acl : {
     routes :{
-      'GET /post' : ['loggedIn'],
-      'GET /post/:id' : ['owner']
+//      'GET /post' : ['loggedIn'],
+//      'GET /post/:id' : ['owner']
     },
     roles : {
       loggedIn : function(req){
@@ -33,6 +33,11 @@ var admin = {
           }).fail(reject)
         })
       }
+    }
+  },
+  statistics : {
+    log : {
+      'GET *' : 'daily'
     }
   }
 }
