@@ -203,27 +203,26 @@ function getRef( obj, name ){
 }
 
 function setRef( obj, name, data){
-//  console.log( "[BUS] setting data", name, data)
 
   var ns = name.split('.'),
     ref = obj,
     currentName
 
   while( currentName = ns.shift() ){
-    if( _.isObject(ref) && ref[currentName]){
-      ref = ref[currentName]
-    }else{
-      if( ns.length == 0 ){
-        if( _.isPlainObject(ref[currentName] )){
-          _.merge(ref[currentName],data)
-        }else{
-          if( ref[currentName] !== undefined ) console.log("you are changing a exist data",name)
-          ref[currentName] = data
-        }
+    if( ns.length == 0 ){
+      if( _.isPlainObject(ref[currentName] )){
+        _.merge(ref[currentName],data)
       }else{
-        ref[currentName] = {}
-        ref = ref[currentName]
+        if( ref[currentName] !== undefined ) console.log("you are changing a exist data",name)
+        ref[currentName] = data
       }
+
+    }else{
+      if( !_.isObject(ref[currentName])) {
+        if( ref[currentName] !== undefined ) console.log("your data will be reset to an object",currentName)
+        ref[currentName] = {}
+      }
+      ref = ref[currentName]
     }
   }
 
