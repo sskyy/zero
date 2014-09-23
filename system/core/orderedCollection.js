@@ -27,7 +27,7 @@ function linkAfter ( obj1, obj2 ){
 function linkBefore ( obj1, obj2){
   if( !obj1 || !obj2 ) return
 
-gi  obj2.next = obj1
+  obj2.next = obj1
   if( obj1.prev ){
     obj2.prev = obj1.prev
     obj2.prev.next = obj2
