@@ -10,7 +10,6 @@ var PADDING = 30,
   moduleRef = {}, //will collect the el ref for each module
   fnDescRef = {} //will collect description of function
 
-
 function createTriangle( attr ){
   attr = attr || {}
   _.defaults(attr,{

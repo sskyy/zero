@@ -23,7 +23,7 @@ module.exports = {
               res.status(404)
               res.send("404")
             }else{
-              ZERO.mlog("respond"," <---------------success respond------------->",respond.file,respond.page)
+              ZERO.mlog("respond"," <---------------success respond-------------->",respond.file,respond.page)
 
               if( respond.file ){
                 return req.bus.fire('respond.file.before', respond).then(function(){

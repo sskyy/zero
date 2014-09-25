@@ -59,7 +59,6 @@ module.exports = {
             res.status(500).end()
           }
         })
-
       },
       order: {before: "respond.respondHandler"}
     }

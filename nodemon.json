@@ -1,0 +1,10 @@
+{
+  "ignore": ["docs/*",
+    "test/*",
+    "uploads/*",
+    "node_modules/*",
+    ".git",
+    "system/modules/dev/public/**/*.js",
+    "modules/twenty/themes/default/**/*.js"
+  ]
+}

@@ -1,7 +1,6 @@
 var globalConfig = require('../../config'),
   _ = require('lodash')
 
-
 module.exports = {
   expand : function( module ){
     var root = this

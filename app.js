@@ -4,15 +4,15 @@ var agent = require('webkit-devtools-agent');
 
 var express = require('express'),
   app = express(),
+  http = require("http"),
+  server = http.createServer(app),
   bodyParser = require('body-parser'),
   multer  = require('multer'),
   session = require('express-session'),
   zero = require('./system/core/zero'),
   port = 3000,
-  colors = require('colors')
-
-
-
+  colors = require('colors'),
+   argv = require('optimist').argv;
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
@@ -32,16 +32,13 @@ global['APP'] = app
 global['ZERO'] = zero
 
 require('./system/core/bootstrap')(app,{}, function(){
-  console.log((function(){
-//################################################################################
-//     _____  _____   ____     ___      ____    _____      _      ____    _____
-//    |__  / | ____| |  _ \   / _ \    / ___|  |_   _|    / \    |  _ \  |_   _|
-//      / /  |  _|   | |_) | | | | |   \___ \    | |     / _ \   | |_) |   | |
-//     / /_  | |___  |  _ <  | |_| |    ___) |   | |    / ___ \  |  _ <    | |
-//    /____| |_____| |_| \_\  \___/    |____/    |_|   /_/   \_\ |_| \_\   |_|
-//
-//################################################################################
-  }).toString().replace(/^(\/\/|function\s\(\){|\s*})/mg,'').cyan)
+  zero.banner()
   zero.mlog("zero","listening",port)
-  app.listen(port)
+  zero.warn("current environment : " + (argv.prod?"production":"development"))
+
+  server.listen(port)
+
+  if( !argv.prod){
+    require('./system/core/dev')(server, app)
+  }
 })
