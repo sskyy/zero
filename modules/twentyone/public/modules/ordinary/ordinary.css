@@ -1,0 +1,61 @@
+/*
+*/
+body, #skel-layers-wrapper{
+    /*background: #000 !important;*/
+}
+table thead{
+    background: #333333;
+    color: #fff;
+    border-bottom: 1px #efefef solid;
+}
+
+table tr {
+  text-align: center;
+  padding: 10px 0;
+  line-height: 50px;
+  border-bottom: 1px #efefef solid;
+}
+table tr:last-child {
+  border-bottom-width: 0px;
+}
+
+table.crud .actions{
+    /*text-align: right;*/
+}
+
+table.crud .action{
+    display: inline-block;
+    margin-left: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom-width: 0px ;
+}
+
+/*layout*/
+html,body{
+    overflow: hidden;
+}
+
+.content{
+    padding:0;
+    margin: 0;
+}
+
+.content.with-summary{
+    padding-right: 150px;
+}
+
+.content-list{
+    overflow-x: hidden;
+    overflow-y: auto ;
+    height: 100%;
+}
+
+.content-summary{
+    position: fixed;
+    right: 0;
+    top:0;
+    padding-top: 50px;
+    height: 100%;
+    width: 150px;
+}

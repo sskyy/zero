@@ -1,0 +1,35 @@
+.row(ng-controller="ordinary.artwork.detail")
+    .col-lg-10
+        .artwork
+            .cover(ng-show='artwork.file.url')
+                section.video(ng-video)
+                    video(vi-screen,width="100%")
+
+                    section(vi-controls)
+                        a(vi-controls-play) Play
+                        a(vi-controls-pause) Pause
+                    section(vi-feedback)
+                        ul
+                            li Time: {{currentTime}}s / {{duration}}
+                            li Volume: {{volume}}
+                            li Buffered: {{buffered}}%
+                            li Loading: {{loading}}
+                            li Playing: {{playing}}
+                    input(vi-timeline)
+            .text
+                .title {{artwork.title}}
+                .description {{artwork.content}}
+                .meta
+                    a
+                        i.fa.fa-heart
+                        | 30
+                    a
+                        i.fa.fa-eye
+                        | 3130
+    .col-lg-2
+        div
+            | online:1110
+            | last update : 9:00
+
+
+

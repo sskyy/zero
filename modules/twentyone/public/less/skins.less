@@ -1,0 +1,275 @@
+
+/* 
+    Skins
+    -----
+*/
+
+/* 
+    Skin Blue 
+    ---------
+*/
+
+/* skin-blue navbar */
+.skin-blue .navbar {
+    .navbar-variant(@light-blue);
+}
+/* skin-blue logo */
+.skin-blue .logo {
+    .logo-variant(darken(@light-blue, 5%));
+}
+/* skin-blue content header */
+.skin-blue .right-side > .content-header {
+    background: #fbfbfb;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+/* Skin-blue user panel */
+.skin-blue .user-panel {
+
+    > .image > img {
+        border: 1px solid #dfdfdf;
+    }
+
+    > .info, > .info > a {
+        color: @sidebar-light-font;
+    }
+}
+
+/* skin-blue sidebar */
+.skin-blue {
+    .sidebar {
+        border-bottom: 1px solid #fff;
+    }
+    // the menu 
+    .sidebar > .sidebar-menu > li {
+        border-top: 1px solid #fff;
+        border-bottom: 1px solid @sidebar-light-border;
+
+        &:first-of-type {
+            border-top: 1px solid @sidebar-light-border;
+            > a {
+                border-top: 1px solid #fff;
+            }
+        }
+        > a {
+            margin-right: 1px;
+        }
+        //Hover and active states
+        > a:hover, &.active > a {
+            color: #222;
+            background: @sidebar-light-hover-bg;            
+        }
+
+        > .treeview-menu {
+            margin: 0 1px;
+            background: @body-bg;
+        }
+    }
+
+    // Sidebar color (Both .wrapper and .left-side are responsible for sidebar bg color) 
+    .left-side {
+        background: @sidebar-light-bg;
+        -webkit-box-shadow: inset -3px 0px 8px -4px rgba(0, 0, 0, 0.1);
+        -moz-box-shadow: inset -3px 0px 8px -4px rgba(0, 0, 0, 0.1);
+        box-shadow: inset -3px 0px 8px -4px rgba(0, 0, 0, 0.07);
+    }
+
+    .sidebar a {
+        color: @sidebar-light-font;
+        &:hover {
+            text-decoration: none;
+        }
+    }
+    // skin blue treeview-menu
+    .treeview-menu {
+        > li {
+            > a {color: #777;}
+            &.active > a, > a:hover {
+                color: #111;
+            }
+        }
+    }
+
+    .sidebar-form {
+        .border-radius(2px);
+        border: 1px solid @sidebar-light-border;
+        margin: 10px 10px;
+        input[type="text"], .btn {
+            box-shadow: none;
+            background-color: #fafafa;
+            border: 1px solid #fafafa;
+            height: 35px;
+
+        }
+        input[type="text"]{
+            color: #666;
+            .border-radius(2px, 0, 2px, 0)!important;
+            &:focus, &:focus + .input-group-btn .btn {
+                background-color: #fff;
+                color: #666;
+            }
+            &:focus + .input-group-btn .btn {
+                border-left-color: #fff;
+            }
+        }
+        .btn {
+            color: #999;
+            .border-radius(0, 2px, 0, 2px)!important;
+        }
+    }
+}
+
+/*
+    Skin Black
+    --------
+*/
+
+/* skin-black navbar */
+.skin-black .navbar {
+    .navbar-variant(#fff; #333; #999; #fff);
+    border-bottom: 1px solid #eee;
+}
+/* skin-black logo */
+.skin-black .logo {
+    .logo-variant(#333);
+}
+/* skin-black content header */
+.skin-black .right-side > .content-header {
+    background: transparent;
+    box-shadow: none;
+}
+/* Skin-red user panel */
+.skin-black .user-panel {
+
+    > .image > img {
+        border: 1px solid #444;
+    }
+
+    > .info, > .info > a {
+        color: #eee;
+    }
+}
+
+
+
+/* skin twentyone*/
+.skin-twentyone{
+    background: #d5dee7;
+    .navbar {
+        .navbar-variant(#fff; #333; #999; #fff);
+        border-bottom: 1px solid #fff;
+    }
+    .logo {
+        color : #be7465;
+//        .logo-variant(#be7465);
+    }
+
+    // Sidebar color
+    .left-side {
+        width: 180px;
+        background: #344563;
+    }
+
+    .user-panel {
+        > .image > img {
+            border: 1px solid #444;
+        }
+
+        > .info, > .info > a {
+            color: #eee;
+        }
+    }
+
+    .sidebar {
+        a {
+            color: #ccc;
+            &:hover {
+                text-decoration: none;
+            }
+            i.pull-right{
+                color : #263753;
+
+            }
+        }
+        .sidebar-menu > li {
+            border-top: 1px solid #304e5d;
+            border-bottom: 0px solid #2f405c;
+
+            &:first-of-type {
+                border-top: none;
+                > a {
+                    border-top: none;
+                }
+            }
+            &:last-of-type {
+                border-bottom: none;
+                > a {
+                    border-bottom: none;
+                }
+            }
+            > a {
+                margin-right: 1px;
+            }
+            //Hover and active states
+            > a:hover, &.active > a {
+                color: #fff;
+
+            }
+            > .treeview-menu {
+                margin: 0 1px;
+                & > li {
+                    > a {color: #ccc;}
+                    &.active > a, > a:hover {
+                        color: #4eab70;
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    .sidebar-form {
+        .border-radius(2px);
+        border: 0px solid #555;
+        margin: 10px 10px;
+        input[type="text"], .btn {
+            box-shadow: none;
+            background-color: rgba(255,255,255, 0.1);
+            border: 0 solid rgba(255,255,255, 0.1);
+            height: 35px;
+            outline: none;
+        }
+        input[type="text"]{
+            color: #666;
+            .border-radius(2px, 0, 2px, 0)!important;
+            &:focus, &:focus + .input-group-btn .btn {
+                background-color: #444;
+                border: 0;
+            }
+            &:focus + .input-group-btn .btn {
+                border-left: 0;
+            }
+        }
+        .btn {
+            color: #999;
+            .border-radius(0, 2px, 0, 2px)!important;
+            border-left: 0;
+        }
+    }
+
+    .right-side{
+        margin-left:180px ;
+        position: relative;
+        background: #d5dee7;
+
+        .wing{
+            .chat-input{
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                margin: 10px;
+            }
+        }
+    }
+
+}

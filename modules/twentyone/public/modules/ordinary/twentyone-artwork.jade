@@ -1,0 +1,179 @@
+doctype html
+html
+  head
+    meta(charset='UTF-8')
+    title TwentyOne
+    meta(content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no', name='viewport')
+    link(href='../../css/bootstrap.min.css', rel='stylesheet', type='text/css')
+    link(href='../../css/font-awesome.min.css', rel='stylesheet', type='text/css')
+    link(href='../../css/ionicons.min.css', rel='stylesheet', type='text/css')
+    link(href='../../css/AdminLTE.css', rel='stylesheet', type='text/css')
+    //if lt IE 9
+      script(src='https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js')
+      script(src='https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js')
+  body.skin-twentyone.fixed
+    header.header
+      a.logo(href='../../index.html')
+        | TwentyOne
+      // Header Navbar: style can be found in header.less
+      nav.navbar.navbar-static-top(role='navigation')
+        a.navbar-btn.sidebar-toggle(href='#', data-toggle='offcanvas', role='button')
+          span.sr-only Toggle navigation
+          span.icon-bar
+          span.icon-bar
+          span.icon-bar
+        .navbar-right
+          ul.nav.navbar-nav
+            li.dropdown.user.user-menu
+              a.dropdown-toggle(href='#', data-toggle='dropdown')
+                i.fa.fa-plus.fa-2x
+            // Messages: style can be found in dropdown.less
+            li.dropdown.messages-menu
+              a.dropdown-toggle(href='#', data-toggle='dropdown')
+                i.fa.fa-envelope
+                span.label.label-success 4
+              ul.dropdown-menu
+                li.header You have 4 messages
+                li
+                  // inner menu: contains the actual data
+                  ul.menu
+                    li
+                      // start message
+                      a(href='#')
+                        .pull-left
+                          img.img-circle(src='../../img/avatar3.png', alt='User Image')
+                        h4
+                          | Support Team
+                          small
+                            i.fa.fa-clock-o
+                            |  5 mins
+                        p Why not buy a new awesome theme?
+                    // end message
+                    li
+                      a(href='#')
+                        .pull-left
+                          img.img-circle(src='../../img/avatar2.png', alt='user image')
+                        h4
+                          | AdminLTE Design Team
+                          small
+                            i.fa.fa-clock-o
+                            |  2 hours
+                        p Why not buy a new awesome theme?
+                li.footer
+                  a(href='#') See All Messages
+            // User Account: style can be found in dropdown.less
+            li.dropdown.user.user-menu
+              a.dropdown-toggle(href='#', data-toggle='dropdown')
+                i.glyphicon.glyphicon-user
+                span
+                  | Jane Doe 
+                  i.caret
+              ul.dropdown-menu
+                // User image
+                li.user-header.bg-light-blue
+                  img.img-circle(src='../../img/avatar3.png', alt='User Image')
+                  p
+                    | Jane Doe - Web Developer
+                    small Member since Nov. 2012
+                // Menu Body
+                li.user-body
+                  .col-xs-4.text-center
+                    a(href='#') Followers
+                  .col-xs-4.text-center
+                    a(href='#') Sales
+                  .col-xs-4.text-center
+                    a(href='#') Friends
+                // Menu Footer
+                li.user-footer
+                  .pull-left
+                    a.btn.btn-default.btn-flat(href='#') Profile
+                  .pull-right
+                    a.btn.btn-default.btn-flat(href='#') Sign out
+    .wrapper.row-offcanvas.row-offcanvas-left
+      // Left side column. contains the logo and sidebar
+      aside.left-side.sidebar-offcanvas
+        // sidebar: style can be found in sidebar.less
+        section.sidebar
+          // Sidebar user panel
+          .user-panel
+            .pull-left.image
+              img.img-circle(src='../../img/avatar3.png', alt='User Image')
+            .pull-left.info
+              p Hello, Jane
+              a(href='#')
+                i.fa.fa-circle.text-success
+                |  Online
+          // search form
+          form.sidebar-form(action='#', method='get')
+            .input-group
+              input.form-control(type='text', name='q', placeholder='Search...')
+              span.input-group-btn
+                button#search-btn.btn.btn-flat(type='submit', name='seach')
+                  i.fa.fa-search
+          // /.search form
+          // sidebar menu: : style can be found in sidebar.less
+          ul.sidebar-menu
+            li.treeview.active
+              a(href='#')
+                i.fa.fa-picture-o
+                span Artworks
+                i.fa.fa-angle-left.pull-right
+              ul.treeview-menu
+                li.active
+                  a(href='../charts/morris.html')  hottest
+                li
+                  a(href='../charts/flot.html')  latest
+            li.treeview
+              a(href='#')
+                i.fa.fa-group
+                span Artists
+                i.fa.fa-angle-left.pull-right
+              ul.treeview-menu
+                li
+                  a(href='../UI/general.html')  hottest
+                li
+                  a(href='../UI/icons.html')  famous
+        // /.sidebar
+      // Right side column. Contains the navbar and content of the page
+      aside.right-side
+        div
+          // Main content
+          section.content
+            .row
+              .col-xs-10
+                .artwork
+                  .cover
+                    img(src='https://d13yacurqjgara.cloudfront.net/users/13865/screenshots/1742386/5_years.jpg')
+                    a.mask
+                  .text
+                    .title &#x5219;&#x662F;&#x6807;&#x9898;
+                    .description &#x4EA7;&#x54C1;&#x8BBE;&#x8BA1;&#x7684;&#x6781;&#x7B80;&#xFF0C;&#x672C;&#x8D28;&#x4E0A;&#x662F;&#x4E00;&#x79CD;&#x6B9A;&#x7CBE;&#x7AED;&#x8651;&#x7684;&#x7B80;&#x5355;&#x5448;&#x73B0;&#x3002;#&#x6728;##&#x7EBF;&#x6761;##&#x51E0;&#x4F55;##&#x7B80;&#x7EA6;#&#x3002;&#x4EA7;&#x54C1;&#x8BBE;&#x8BA1;&#x7684;&#x6781;&#x7B80;&#xFF0C;&#x672C;&#x8D28;&#x4E0A;&#x662F;&#x4E00;&#x79CD;&#x6B9A;&#x7CBE;&#x7AED;&#x8651;&#x7684;&#x7B80;&#x5355;&#x5448;&#x73B0;&#x3002;#&#x6728;##&#x7EBF;&#x6761;##&#x51E0;&#x4F55;##&#x7B80;&#x7EA6;#
+                    .meta
+                      a
+                        i.fa.fa-heart
+                        | 30
+                      a
+                        i.fa.fa-eye
+                        | 3130
+                .comment
+              .col-xs-2
+                .user
+                  img.avatar(src='http://127.0.0.1:8080/img/avatar.png')
+                  .name
+                    span &#x52A0;&#x7F2A; 
+                    a
+                      i.fa.fa-star
+                      | 3130
+                  .information
+                    div 11 &#x7BC7;&#x4F5C;&#x54C1;
+          // /.content
+      // /.right-side
+    // ./wrapper
+    // jQuery 2.0.2
+    script(src='http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js')
+    // Bootstrap
+    script(src='../../js/bootstrap.min.js', type='text/javascript')
+    // AdminLTE App
+    script(src='../../js/AdminLTE/app.js', type='text/javascript')
+    // AdminLTE for demo purposes
+    script(src='../../js/AdminLTE/demo.js', type='text/javascript')

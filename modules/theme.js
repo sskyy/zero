@@ -48,6 +48,7 @@ function generateThemeHandler( module){
 
     req.bus.fcall("theme.render", fireParams, function(){
       var bus = this
+
       if( root.cache[module.name].statics[cachePath] ) {
         //1. check if current view route match any static files
 //        ZERO.mlog("THEME","find static file", cachePath)
@@ -183,6 +184,7 @@ module.exports = {
     //cache all files
     var pages = walk(path.join(appUrl, themePath), function( f){ return _.indexOf(root.config.engines, f.split(".").pop()) !== -1}),
       statics = walk( path.join(appUrl, themePath), function(f){ return _.indexOf(root.config.engines, f.split(".").pop()) == -1 })
+
     root.cache[module.name] = {
       page: _.zipObject( pages,  fill(pages.length, true)),
       statics:_.zipObject( statics,  fill(statics.length, true))
@@ -204,8 +206,11 @@ module.exports = {
     //TODO find the right view file
     var i, templateName, templatePath, tmp = restRoute.url.slice(1).split("/"), extension
 
-    if( tmp.length == 1){
 
+    if( extension = findExtension( cache.page,root.config.engines, path.join( appUrl, themePath, restRoute.url.slice(1) ) ) ){
+      //match certain files
+      templateName = restRoute.url.slice(1)
+    }else if( tmp.length == 1){
       // 测试代码, 优先找到符合条件的页面，如果没有找到，则按照crud action pages的方式寻找？
       templateName = tmp[0]
       templatePath = path.join( appUrl, themePath, templateName )
@@ -217,7 +222,6 @@ module.exports = {
         templatePath = path.join( appUrl, themePath, templateName)
         extension = findExtension( cache.page,root.config.engines,templatePath )
       }
-
     }else{
       for( i = tmp.length;i>0; i--){
         templateName = tmp.slice(0,i).join('-')

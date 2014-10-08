@@ -1,7 +1,6 @@
 var _  = require("lodash"),
    htmlToText = require('html-to-text');
 
-
 function extendListener( root, nodeName ){
   root.listen = root.listen || {}
   root.listen[nodeName+'.create.before'] = function generateBriefAndLogUser(val){

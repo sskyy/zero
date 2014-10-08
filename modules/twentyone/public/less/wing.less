@@ -1,0 +1,33 @@
+.wing{
+    position : fixed;
+    box-sizing: border-box;
+    &.top{
+        border-top:2px #c7d0db solid ;
+        top:50px;
+        left:0px;
+        padding-left: 180px;
+        width: 100%;
+        .content{
+            box-shadow:0px 1px 3px rgba(0,0,0,.2);
+        }
+    }
+    &.right{
+        top:0px;
+        right:0px;
+        height: 100%;
+        width: 50%;
+        padding-top:50px ;
+        .content{
+            box-shadow:-2px 0px 3px rgba(0,0,0,.2);
+            height: 100%;
+        }
+    }
+
+    .row{
+        margin: 0;
+    }
+    .content{
+        background: #fff;
+    }
+
+}

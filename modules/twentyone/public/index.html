@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="./lib/socket.io-1.1.0.js"></script>
+</head>
+<body>
+
+<script>
+
+    var socket = io.connect('http://127.0.0.1:3000');
+
+    socket.on('connect', function () {
+        socket.on('ready', function () {
+        });
+        console.log('Connected !');
+        console.log("emit join")
+
+        socket.emit("join","num1")
+        socket.emit("say","num2")
+        console.log("emit chat")
+    });
+</script>
+</body>
+</html>

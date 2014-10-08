@@ -1,0 +1,29 @@
+doctype html
+html(ng-app='ordinary')
+    head
+        include head.jade
+    body.skin-twentyone.fixed(ng-controller='ordinary')
+        include header.jade
+        .wrapper.row-offcanvas.row-offcanvas-left
+            // Left side column. contains the logo and sidebar
+            include sidebar.jade
+            // Right side column. Contains the navbar and content of the page
+            aside.right-side
+                div
+                    // Main content
+                    section.content(ui-view)
+
+                    .wing.top(ng-controller="ordinary.artwork.upload",ng-show="active")
+                        .content.upload
+                            include ../upload/upload.jade
+
+            // /.right-side
+        // ./wrapper
+        // jQuery 2.0.2
+        //script(src='http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js')
+        // Bootstrap
+        //script(src='../../js/bootstrap.min.js', type='text/javascript')
+        // AdminLTE App
+        //script(src='../../js/AdminLTE/app.js', type='text/javascript')
+        // AdminLTE for demo purposes
+        //script(src='../../js/AdminLTE/demo.js', type='text/javascript')

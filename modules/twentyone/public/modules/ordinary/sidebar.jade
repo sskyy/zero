@@ -1,0 +1,43 @@
+aside.left-side.sidebar-offcanvas
+    // sidebar: style can be found in sidebar.less
+    section.sidebar
+        // Sidebar user panel
+        .user-panel
+            .pull-left.image
+                img.img-circle(src='../../images/avatar3.png', alt='User Image')
+            .pull-left.info
+                p Hello, Jane
+                a(href='#')
+                    i.fa.fa-circle.text-success
+                    |  Online
+        // search form
+        form.sidebar-form(action='#', method='get')
+            .input-group
+                input.form-control(type='text', name='q', placeholder='Search...')
+                span.input-group-btn
+                    button#search-btn.btn.btn-flat(type='submit', name='seach')
+                        i.fa.fa-search
+        // /.search form
+        // sidebar menu: : style can be found in sidebar.less
+        ul.sidebar-menu
+            li.treeview.active
+                a(href='#')
+                    i.fa.fa-picture-o
+                    span Artworks
+                    i.fa.fa-angle-left.pull-right
+                ul.treeview-menu
+                    li.active
+                        a(href='../charts/morris.html')  hottest
+                    li
+                        a(href='../charts/flot.html')  latest
+            li.treeview
+                a(href='#')
+                    i.fa.fa-group
+                    span Artists
+                    i.fa.fa-angle-left.pull-right
+                ul.treeview-menu
+                    li
+                        a(href='../UI/general.html')  hottest
+                    li
+                        a(href='../UI/icons.html')  famous
+    // /.sidebar

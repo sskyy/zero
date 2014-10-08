@@ -1,0 +1,20 @@
+.welcome {
+  position: relative;
+  margin-bottom: 0px;
+}
+.welcome .title {
+  margin-left: 10px;
+  font-size: 60px;
+  line-height: 60px;
+}
+.welcome .time {
+  font-size: 20px;
+}
+.welcome .item {
+  text-align: center;
+  color: #666;
+  vertical-align: bottom;
+}
+.table.crud .operation {
+  text-align: right;
+}

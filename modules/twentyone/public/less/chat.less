@@ -1,0 +1,61 @@
+// Chat widget
+.chat {
+    padding: 5px 20px 5px 10px;
+
+    .item {
+        .clearfix();
+        margin-bottom: 10px;
+        // The image
+        > img {
+            //display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 2px solid transparent;
+            .border-radius(50%)!important;
+            &.online {
+                border: 2px solid @green;
+            }
+            &.offline {
+                border: 2px solid @red;
+            }
+        }
+
+        // The message body
+        > .message {
+            margin-left: 55px;
+            margin-top: -40px;
+            > .name {
+                display: block;
+                font-weight: 600;
+            }
+        }
+
+        // The attachment
+        > .attachment {
+            .border-radius(@attachment-border-radius);
+            background: #f0f0f0;
+            margin-left: 65px;
+            margin-right: 15px;
+            padding: 10px;
+            > h4 {
+                margin: 0 0 5px 0;
+                font-weight: 600;
+                font-size: 14px;
+            }
+            > p, > .filename {
+                font-weight: 600;
+                font-size: 13px;
+                font-style: italic;
+                margin: 0;
+
+            }
+            .clearfix();
+        }
+    }
+
+    .chat-input{
+
+    }
+
+}
+// END CHAT WIDGET

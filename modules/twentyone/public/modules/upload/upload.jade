@@ -1,0 +1,13 @@
+.row(ng-controller="node.create",node-type="artwork")
+    .col-lg-4
+        .form-group
+            div.trigger(node-upload='{"url":"/attachment","maxFiles":1,"attach":"file","multiple":false}')
+            div.file
+                a(ng-href="{{node.file.url}}") {{node.file.name}} {{node.file.size}}
+    .col-lg-8
+        .form-group
+            input.form-control(type='text', placeholder='title ...',ng-model='node.title')
+        .form-group
+            textarea.form-control(placeholder='description ...',ng-model='node.content')
+        .form-group
+            button.btn.btn-primary(type='button',ng-click='submit()') Submit

@@ -1,0 +1,77 @@
+header.header
+    a.logo(href='../../index.html')
+        | TwentyOne
+    // Header Navbar: style can be found in header.less
+    nav.navbar.navbar-static-top(role='navigation')
+        a.navbar-btn.sidebar-toggle(href='#', data-toggle='offcanvas', role='button')
+            span.sr-only Toggle navigation
+            span.icon-bar
+            span.icon-bar
+            span.icon-bar
+        .navbar-right
+            ul.nav.navbar-nav
+                li.user.user-menu
+                    a(href='#', data-toggle='dropdown',ng-click="upload()")
+                        i.fa.fa-plus
+                // Messages: style can be found in dropdown.less
+                li.dropdown.messages-menu
+                    a.dropdown-toggle(href='#', data-toggle='dropdown')
+                        i.fa.fa-envelope
+                        span.label.label-success 4
+                    ul.dropdown-menu
+                        li.header You have 4 messages
+                        li
+                            // inner menu: contains the actual data
+                            ul.menu
+                                li
+                                    // start message
+                                    a(href='#')
+                                        .pull-left
+                                            img.img-circle(src='../../images/avatar3.png', alt='User Image')
+                                        h4
+                                            | Support Team
+                                            small
+                                                i.fa.fa-clock-o
+                                                |  5 mins
+                                        p Why not buy a new awesome theme?
+                                // end message
+                                li
+                                    a(href='#')
+                                        .pull-left
+                                            img.img-circle(src='../../images/avatar2.png', alt='user image')
+                                        h4
+                                            | AdminLTE Design Team
+                                            small
+                                                i.fa.fa-clock-o
+                                                |  2 hours
+                                        p Why not buy a new awesome theme?
+                        li.footer
+                            a(href='#') See All Messages
+                // User Account: style can be found in dropdown.less
+                li.dropdown.user.user-menu
+                    a.dropdown-toggle(href='#', data-toggle='dropdown')
+                        i.glyphicon.glyphicon-user
+                        span
+                            | Jane Doe
+                            i.caret
+                    ul.dropdown-menu
+                        // User image
+                        li.user-header.bg-light-blue
+                            img.img-circle(src='../../images/avatar3.png', alt='User Image')
+                            p
+                                | Jane Doe - Web Developer
+                                small Member since Nov. 2012
+                        // Menu Body
+                        li.user-body
+                            .col-xs-4.text-center
+                                a(href='#') Followers
+                            .col-xs-4.text-center
+                                a(href='#') Sales
+                            .col-xs-4.text-center
+                                a(href='#') Friends
+                        // Menu Footer
+                        li.user-footer
+                            .pull-left
+                                a.btn.btn-default.btn-flat(href='#') Profile
+                            .pull-right
+                                a.btn.btn-default.btn-flat(href='#') Sign out

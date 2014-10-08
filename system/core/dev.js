@@ -46,7 +46,7 @@ module.exports = function( server, app ){
     glob:[
       'modules/**/*.css',
       'modules/**/*.html',
-      'module/**/*.jade',
+      'modules/**/*.jade',
       'system/modules/**/*.css',
       'system/modules/**/*.html'
     ].concat(frontEndScriptGlob)},function( filepath, callback){
@@ -60,15 +60,11 @@ module.exports = function( server, app ){
       //machedToArray[0][1].url is url,
       var resourceURL = path.join( matchedToArray[0][1].url, path.relative( matchedToArray[0][1].origin,path.join(root,filepath)))
 
-      console.log( "resourceURL---------->",resourceURL)
+//      console.log( "resourceURL---------->",resourceURL)
       callback({
         resourceURL : resourceURL,
         contents : fs.readFileSync(path.join(root,filepath)),
-        update : function( _window,_resourceURL){
-          if( /\.js$/.test( _resourceURL)){
-            location.reload()
-          }
-        }
+        reload : /\.(js|jade|html)$/.test( resourceURL)
       })
     }
 
