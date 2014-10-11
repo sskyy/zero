@@ -26,7 +26,8 @@
 
 
 var Q = require('q'),
-  _ = require('lodash')
+  _ = require('lodash'),
+  async = require('async')
 
 
 
@@ -427,14 +428,17 @@ function appendChildListeners(stack) {
  * @param {object} opt 高级选项，可以指定屏蔽某一事件或者只触发某一监听器。
  * @returns {object} promise object or array of results returned by listeners
  */
-Bus.prototype.fire = function (eventOrg, args, opt) {
+Bus.prototype.fire = function (opt) {
 
-  console.log("[BUS] firing :", eventOrg, 'bus id:', this._id)
   if (!this._started) {
     console.log("[BUS] not started!")
     return false
   }
-  //should
+
+  var eventOrg = _.isObject(opt) ? opt.event : opt,
+    args = _.toArray(arguments).slice(1)
+
+  console.log("[BUS] firing :", eventOrg, 'bus id:', this._id)
 
 
   var caller = arguments.callee.caller.name
@@ -443,8 +447,8 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
     eventNs = eventOrg.split(this.opt.nsSplit),
     root = this,
     results = {},
-    currentRef,
-    firer = root.standardListener({module: root.module, name: caller})
+    firer = root.standardListener({module: root.module, name: caller}),
+    firePromise = Q.defer()
 
   root['$$results'] = root['$$results'] || {}
   opt = opt || {}
@@ -464,13 +468,13 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
   }
 
   //save current reference
-  currentRef = root.$$traceRef
+  var currentRef = root.$$traceRef
+  var currentEventRef
   if (root.opt.track) {
     //if fire in a promise callback, set the ref to right one
     //push current listeners to stack
 
-
-    root.$$traceRef.stack.push({
+    currentEventRef = {
       "name": eventOrg,
       "attached": matchedEventStack.map( function (matchedEvent ) {
         var matchedEventRecord = _.cloneDeep(matchedEvent)
@@ -478,20 +482,24 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
           listener.stack = []
         })
         return matchedEventRecord
-      })})
+      })}
+
+    root.$$traceRef.stack.push(currentEventRef)
   }
 
   //fire
-  var onError = false
-  matchedEventStack.every(function (matchedEvent, i) {
-    if( onError ) return false;//break the loop
-    matchedEvent.listeners.every(function (listener, j) {
+  var error = false
+  forEachSeries(matchedEventStack, function (matchedEvent, i, nextEvent) {
+    if( error ) return nextEvent(error);//break the loop
+
+////
+    forEachSeries(matchedEvent.listeners, function (listener, j, nextListener) {
       //set $$traceRef back
 
       var muteList = root.$$mute || root._mute
       if (muteList[listener.name] === undefined) {
         if (root.opt.track) {
-          root.$$traceRef = root.$$traceRef.stack[root.$$traceRef.stack.length - 1].attached[i].listeners[j]
+          root.$$traceRef = currentEventRef.attached[i].listeners[j]
           root.$$traceRef.argv = matchedEvent.arguments.concat( cloneOwnProperties(args))
         }
 
@@ -501,18 +509,34 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
 
         if (root.opt.track) {
           if (root.$$traceRef !== currentRef) root.$$traceRef = currentRef
-          root.$$traceRef.stack[root.$$traceRef.stack.length - 1].attached[i].listeners[j].result = res
+          currentEventRef.attached[i].listeners[j].result = res
         }
 
         results[listener.name] = res
         if( res instanceof  BusError ){
-          onError = true
-          return false//break the loop
+          error = res
+          return nextListener(res)//break the loop
+        }else if(Q.isPromise(res) && res.block){
+          res.then(function(){nextListener()})
+          res.fail(nextListener)
+        }else{
+          nextListener()
         }
+      }else{
+        nextListener()
       }
-      return true //continue loop
+    }, function allListenerExecuted(){
+      nextEvent()
     })
-    return true //continue loop
+
+  }, function allMatchedEventTriggered( err ){
+    if( err ){
+      return console.log("bus fire error!!!",err)
+    }
+
+    var allPromise = nestedBusPromise(results)
+    allPromise.then(firePromise.resolve)
+    allPromise.fail(firePromise.reject)
   })
 
   //set it back
@@ -522,15 +546,24 @@ Bus.prototype.fire = function (eventOrg, args, opt) {
 //  console.log( "$$results",root['$$results'])
 
   this._fired = true
-  return nestedBusPromise(results)
+//  var output = nestedBusPromise(results)
+//  if( eventOrg=='user.register.before'){
+//    results['invite.checkInviteCode'].then(function(){
+//      console.log('invite.checkInviteCode then',arguments)
+//    }).fail(function(err){
+//      console.log('invite.checkInviteCode fail',err)
+//    })
+//  }
+//  return output
+  return firePromise.promise
 }
 
 Bus.prototype.fcall = function( eventOrg, args, fn ){
   var root = this.snapshot()
-  var result = root.fire( eventOrg + ".before" , args).then( function(){
+  var result = root.fire( eventOrg + ".before" , args).then( function(res){
+
     var result = fn.call(root, args)
     if(result && _.isFunction(result.then )){
-      console.log("here")
       return result.then( function(){
         return root.fire( eventOrg + ".after" , args)
       }).fail(function(err){
@@ -566,6 +599,7 @@ function nestedBusPromise( obj ){
     }).fail( defer.reject )
 
   }else if( obj instanceof BusError ){
+    console.log("nestedBusPromise error",obj)
     defer.reject( obj.status)
   }else{
     promiseOrErrorChild = extractPromiseOrErrorChildren(obj)
@@ -574,7 +608,7 @@ function nestedBusPromise( obj ){
       Q.all( promiseOrErrorChild ).then( function(){
         defer.resolve( extractPromiseValue( obj ) )
       }).fail(function(err){
-        defer.reject()
+        defer.reject(err)
       })
 
     }else{
@@ -607,11 +641,11 @@ function extractPromiseOrErrorChildren(obj, resultContainer){
 }
 
 function rejectedPromise( err ){
-  return Q.promise(function( resolve, reject){ reject(err) })
+  return Q.Promise(function( resolve, reject){ reject(err) })
 }
 
 function resolvedPromise( obj ){
-  return Q.promise(function(resolve){ resolve(obj)})
+  return Q.Promise(function(resolve){ resolve(obj)})
 }
 
 function extractPromiseValue( values ){
@@ -674,7 +708,7 @@ function BusError(reason){
  * @returns {*}
  */
 Bus.prototype.error = function( status, error ){
-
+  console.log("[BUS] error", status, error)
   if( arguments.length == 0 )return this.$$error
 
   var reason
@@ -740,5 +774,21 @@ function cloneOwnProperties(object){
 
   return result
 }
+
+function forEachSeries(array, handler, callback  ){
+  var i = -1
+
+  function next(){
+    try{
+      i =  i+1
+      array[i] ? handler( array[i],i, next) : (callback && callback())
+    }catch(e){
+      callback && callback(e)
+    }
+  }
+
+  next()
+}
+
 
 module.exports = Bus

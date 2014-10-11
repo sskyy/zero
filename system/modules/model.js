@@ -4,15 +4,20 @@ var q = require('q'),
 
 
 var diskAdapter = require('sails-disk')
+var mongoAdapter = require('sails-mongo')
 
 var config = {
   adapters: {
-    'default': diskAdapter,
-    disk: diskAdapter
+    'default': mongoAdapter,
+    disk: diskAdapter,
+    mongo : mongoAdapter
   },
   connections: {
-    myLocalDisk: {
+    localDisk: {
       adapter: 'disk'
+    },
+    mongo : {
+      adapter : 'mongo'
     }
   },
   defaults: {
@@ -41,21 +46,26 @@ function extendListener(module) {
 
       module.listen[ name+'.'+method] ={
         "name" : method + name[0].toUpperCase() + name.slice(1),
-        "function": function (arg) {
-          ZERO.mlog("model","on ", name, method, arg)
+        "function": function () {
+          ZERO.mlog("model","on ", name, method, arguments)
           //this bus is a started forked bus or snapshot
           var bus = this
 
           //we should use cloned orm model function, so inside the function we can trigger lifecycle callbacks
           var clonedModel = cloneModel(module.models[name], name, bus.snapshot())
 
-          return clonedModel[method](arg).then(function (data) {
+          return clonedModel[method].apply(clonedModel, arguments).then(done)
+
+          function done(data){
+            console.log(name + "." + method,"find data!!!!!!!!!!!",data.length)
             bus.data(name + "." + method, data)
             return data
-          }).fail(function (err) {
+          }
+
+          function fail(err){
             console.error("model err", err)
             return bus.error(err)
-          })
+          }
         }
       }
     })
@@ -108,7 +118,8 @@ module.exports = {
         ZERO.warn("duplicated model definition :",model.identity,"from",root.name)
       }else{
         root.models[model.identity] = _.defaults(model,{
-          migrate : 'safe'
+          migrate : 'safe',
+          connection : 'mongoAdapter'
         })
       }
     })
@@ -133,11 +144,8 @@ module.exports = {
         extendListener(root)
 //        ZERO.mlog("model","[after extend listener]", root.listen)
         root.dep.bus.expand(root)
-
         resolve()
       });
-    }).fail("err",function(err){
-      ZERO.error( "model fail=====", err)
     })
   }
 }

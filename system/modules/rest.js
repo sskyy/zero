@@ -9,6 +9,26 @@ var restMap = {
   'destroy' : 'delete'
 }
 
+function hierarchyObject(val){
+  var output = _.cloneDeep( val )
+  _.forEach(output, function( v, k){
+    console.log("has dot",k,k)
+    if( k.indexOf(".")>0 ){
+      var i= output,stack = k.split("."),n
+      while( n = stack.shift() ){
+        if( stack.length !== 0){
+          i[n] = i[n] || {}
+          i= i[n]
+        }else{
+          i[n] = v
+        }
+      }
+      delete output[k]
+    }
+  })
+  return output
+}
+
 /**
  * 为依赖次模块的其他模块的 model 提供 rest 接口
  * @module rest
@@ -35,7 +55,7 @@ module.exports = {
           var url,
           event = modelName+'.'+instanceMethod
 
-        if( instanceMethod == 'find' || instanceMethod == 'create'){
+        if(['find' ,'create','destroy'].indexOf(instanceMethod)!==-1){
           url = requestMethod.toUpperCase() + ' /'+modelName
         }else{
           url = requestMethod.toUpperCase() + ' /'+modelName + '/:id'
@@ -45,10 +65,17 @@ module.exports = {
         //TODO separate the respond handler from route would be better?
         root.dep.request.add( url, function restCallback( req, res, next){
 
-          ZERO.mlog("REST","fire" , event ,req.params, _.merge(req.params, req.body, req.query))
-          req.bus.fire( event, _.merge(req.params, req.body, req.query) ).then( function(){
+          //TODO convert params which key has '.' to object
+          var args = [hierarchyObject(_.merge(req.params, req.body, req.query))]
+          if( instanceMethod == 'update' ){
+            args.unshift({id: req.param("id")})
+          }
+          args.unshift(event)
+          ZERO.mlog("REST","fire" , event ,args)
+          req.bus.fire.apply(req.bus, args ).then( function(){
             //use respond module to help us respond
-            req.bus.data("respond.data", _.cloneDeep(req.bus.data( modelName + "." + instanceMethod )))
+//            ZERO.mlog("REST","retriving data" , event ,req.bus.data( event ))
+            req.bus.data("respond.data", _.cloneDeep(req.bus.data( event )))
             next()
           })
         })

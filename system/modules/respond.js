@@ -15,7 +15,7 @@ module.exports = {
 
         //must wait all result resolved!
         req.bus.then(function(){
-          console.log("respond bus.then execute ")
+          ZERO.mlog("respond","respond bus.then execute ")
             var respond = req.bus.data('respond')
 
             if( !respond ){
@@ -23,7 +23,7 @@ module.exports = {
               res.status(404)
               res.send("404")
             }else{
-              ZERO.mlog("respond"," <---------------success respond-------------->",respond.file,respond.page)
+              ZERO.mlog("respond"," <---------------begin to respond-------------->",respond.file,respond.page)
 
               if( respond.file ){
                 return req.bus.fire('respond.file.before', respond).then(function(){
@@ -40,8 +40,8 @@ module.exports = {
               }
             }
         }).fail(function( err ){
-          console.log(err)
-          ZERO.error(err)
+          ZERO.error("respond last handler error",err)
+          res.status(err.status || 500).json({errors: req.bus.$$error })
         })
 
 //        if(req.isAgent) next&&next()

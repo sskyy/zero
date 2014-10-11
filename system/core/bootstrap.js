@@ -6,8 +6,7 @@ var loader = require('./loader'),
 module.exports = function( app, opt, cb ){
 
   return loader.loadAll.call(app, opt, function(){
-    var bootstraps = new orderedCollection,
-      bootstrapResults = []
+    var bootstraps = new orderedCollection
 
     _.forEach(app.modules,function(module){
 
@@ -16,27 +15,22 @@ module.exports = function( app, opt, cb ){
       }
     })
 
-    try{
-
-      bootstraps.forEach(function( module ){
+      bootstraps.forEachSeries(function( module, next ){
 
         ZERO.mlog("bootstrap", module.name)
         //when every module is initialized, call their bootstrap function
-        var bootstrapResult = _.isFunction(module.bootstrap) ?
+
+          var bootstrapResult = _.isFunction(module.bootstrap) ?
           module.bootstrap.call(module) :
           (_.isFunction(module.bootstrap.function) && module.bootstrap.function.call(module))
 
-        bootstrapResults.push(bootstrapResult )
+        q.isPromise( bootstrapResult ) ? bootstrapResult.then(function(){next()}).fail(next) : next()
+
+      }, function( err ){
+        console.log("================callback, ",err)
+        if(err) return ZERO.error(err)
+        cb()
       })
 
-    }catch(e){
-      ZERO.error(e)
-    }
-
-    q.all( bootstrapResults )
-      .then(cb)
-      .fail( function(err){
-      ZERO.error( err)
-    })
   })
 }
