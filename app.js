@@ -11,11 +11,14 @@ var express = require('express'),
   zero = require('./system/core/zero'),
   port = 3000,
   colors = require('colors'),
-  argv = require('optimist').argv;
+  argv = require('optimist').argv,
+  path = require('path');
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(multer({ dest: './uploads/'}))
+app.use( '/uploads', express.static( path.join(__dirname,'./uploads')) )
+
 
 app.engine('jade', require('jade').__express);
 app.engine('html', require('ejs').renderFile);
