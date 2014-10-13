@@ -558,9 +558,10 @@ Bus.prototype.fire = function (opt) {
   return firePromise.promise
 }
 
-Bus.prototype.fcall = function( eventOrg  ){
+Bus.prototype.fcall = function(   ){
   var root = this.snapshot(),
     args = _.toArray( arguments),
+    eventOrg = args.shift(),
     fn = args.pop()
 
 
