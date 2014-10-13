@@ -558,19 +558,23 @@ Bus.prototype.fire = function (opt) {
   return firePromise.promise
 }
 
-Bus.prototype.fcall = function( eventOrg, args, fn ){
-  var root = this.snapshot()
-  var result = root.fire( eventOrg + ".before" , args).then( function(res){
+Bus.prototype.fcall = function( eventOrg  ){
+  var root = this.snapshot(),
+    args = _.toArray( arguments),
+    fn = args.pop()
 
-    var result = fn.call(root, args)
+
+  var result = root.fire.apply( root,[eventOrg + ".before"].concat( args)).then( function(res){
+
+    var result = fn.apply(root, args)
     if(result && _.isFunction(result.then )){
       return result.then( function(){
-        return root.fire( eventOrg + ".after" , args)
+        return root.fire.apply( root, [eventOrg + ".after" ].concat(args))
       }).fail(function(err){
         console.log("err",err)
       })
     }else{
-      return root.fire( eventOrg + ".after" , args)
+      return root.fire.apply( root, [eventOrg + ".after" ].concat(args))
     }
   })
 

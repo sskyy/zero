@@ -54,12 +54,13 @@ function extendListener(module) {
           //we should use cloned orm model function, so inside the function we can trigger lifecycle callbacks
           var clonedModel = cloneModel(module.models[name], name, bus.snapshot())
 
-          return clonedModel[method].apply(clonedModel, arguments).then(done)
+          return clonedModel[method].apply(clonedModel, arguments).then(done).fail(fail)
 
           function done(data){
-            console.log(name + "." + method,"find data!!!!!!!!!!!",data.length)
-            bus.data(name + "." + method, data)
-            return data
+            if( data ){
+              bus.data(name + "." + method, data)
+              return data
+            }
           }
 
           function fail(err){

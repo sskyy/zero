@@ -63,7 +63,7 @@ module.exports = {
 
         //add request handler to send model operation result to browser
         //TODO separate the respond handler from route would be better?
-        root.dep.request.add( url, function restCallback( req, res, next){
+        root.dep.request.add( url, function crud( req, res, next){
 
           //TODO convert params which key has '.' to object
           var args = [hierarchyObject(_.merge(req.params, req.body, req.query))]
@@ -83,7 +83,7 @@ module.exports = {
 
 
       //2. add route for model action
-      root.dep.request.add('POST /'+modelName + '/:action', function restActionCallback( req, res, next){
+      root.dep.request.add('POST /'+modelName + '/:action', function action( req, res, next){
         //rest api handled already
         if( req.bus.data('respond.data')) return next()
 

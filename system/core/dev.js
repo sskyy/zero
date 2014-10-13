@@ -1,6 +1,6 @@
 var path = require('path'),
   fs = require('fs'),
-  flo = require('express-fb-flo'),
+  flo = require('fb-flo-extra'),
   root = path.join(__dirname,'../../'),
   modulePath = "./modules",
   systemModulePath = "./system/modules",
