@@ -55,7 +55,7 @@ module.exports = {
           var url,
           event = modelName+'.'+instanceMethod
 
-        if(['find' ,'create','destroy'].indexOf(instanceMethod)!==-1){
+        if(['find' ,'create'].indexOf(instanceMethod)!==-1){
           url = requestMethod.toUpperCase() + ' /'+modelName
         }else{
           url = requestMethod.toUpperCase() + ' /'+modelName + '/:id'
@@ -68,6 +68,7 @@ module.exports = {
           //TODO convert params which key has '.' to object
           var args = [hierarchyObject(_.merge(req.params, req.body, req.query))]
           if( instanceMethod == 'update' ){
+            //TODO only allow update on id
             args.unshift({id: req.param("id")})
           }
           args.unshift(event)
@@ -75,7 +76,11 @@ module.exports = {
           req.bus.fire.apply(req.bus, args ).then( function(){
             //use respond module to help us respond
 //            ZERO.mlog("REST","retriving data" , event ,req.bus.data( event ))
-            req.bus.data("respond.data", _.cloneDeep(req.bus.data( event )))
+            var result = _.cloneDeep(req.bus.data( event ))
+            if( instanceMethod =='update' ){
+              result = result.pop()
+            }
+            req.bus.data("respond.data", result)
             next()
           })
         })
