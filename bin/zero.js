@@ -15,6 +15,7 @@ program
 
 require("./zero-update")(program)
 require("./zero-install")(program)
+require("./zero-package")(program)
 
 program.parse(process.argv);
 
