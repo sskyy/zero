@@ -1,5 +1,6 @@
 /**
  * Created by jiamiu on 14-8-10.
+ * deprecated!!
  */
 
 var Repo = require('git').Repo,
