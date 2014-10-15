@@ -4,21 +4,21 @@ var q = require('q'),
 
 
 var diskAdapter = require('sails-disk')
-var mongoAdapter = require('sails-mongo')
+//var mongoAdapter = require('sails-mongo')
 
 var config = {
   adapters: {
-    'default': mongoAdapter,
+    'default': diskAdapter,
     disk: diskAdapter,
-    mongo : mongoAdapter
+//    mongo : mongoAdapter
   },
   connections: {
     localDisk: {
       adapter: 'disk'
     },
-    mongo : {
-      adapter : 'mongo'
-    }
+//    mongo : {
+//      adapter : 'mongo'
+//    }
   },
   defaults: {
     migrate: 'alter'
@@ -120,7 +120,7 @@ module.exports = {
       }else{
         root.models[model.identity] = _.defaults(model,{
           migrate : 'safe',
-          connection : 'mongoAdapter'
+          connection : 'localDisk'
         })
       }
     })
