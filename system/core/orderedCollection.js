@@ -166,24 +166,21 @@ orderedCollection.prototype.forEach = function( callback ){
 }
 
 orderedCollection.prototype.forEachSeries = function( handler, callback  ){
-  var root = this,i
+  var root = this
 
-  function next( err ){
+  function next(i, err ){
     if( err ){
-      callback(e)
-      return
+      return callback(e)
     }
 
     try{
-      i = i? (i.next||false) : root.head
-      i ? handler(i.item, next) :callback()
+      i ? handler(i.item, next.bind(root, i.next)) :callback()
     }catch(e){
       callback(e)
     }
-
   }
 
-  next()
+  next(root.head)
 }
 
 module.exports = orderedCollection

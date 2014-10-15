@@ -1,5 +1,5 @@
 var _ = require('lodash'),
-  q = require('q'),
+  Promise = require('bluebird'),
   orderedCollection = require('../core/orderedCollection')
 
 function standardRoute(url) {
@@ -53,12 +53,12 @@ function standardCallback(callback, bus, fnForEachReq) {
       }), req.params)
 
       //resolve all params first
-      q.all(_.values(params)).then(function () {
+      Promise.all(_.values(params)).then(function () {
         req.bus.fire(callback.event, _.mapValues(params, function (param) {
-          return q.isPromise(param) ? param.value : param
+          return util.isPromiseAlike(param) ? param.value() : param
         }))
         next()
-      }).fail(function (err) {
+      }).catch(function (err) {
         ZERO.error(err)
         next( err)
       })
@@ -92,6 +92,8 @@ var request = {
       root.add( url, handler)
       ZERO.mlog("request", "expanding", module.name, url, handler.name)
     })
+    ZERO.mlog("request", "expanding done", module.name)
+
   },
   bootstrap: function () {
     //read respond
@@ -126,7 +128,7 @@ var request = {
         //merge $$traceStack back
         snapshot.$$traceRef.stack = reqAgent.bus.$$traceRoot.stack
         _.merge(snapshot.$$data, reqAgent.bus.$$data )
-      }).fail(function(err){
+      }).catch(function(err){
       })
     }
   },
@@ -187,7 +189,7 @@ var request = {
     var root = this,
       handlers = root.getRouteHandlers(url, method, root.routes)
 
-    return q.Promise(function(resolve,reject){
+    return new Promise(function(resolve,reject){
       resAgent.status = function(){return resAgent}
       resAgent.send = resEnd
       resAgent.sendFile = resEnd

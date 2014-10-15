@@ -25,11 +25,12 @@
 
 
 
-var Q = require('q'),
+var Promise = require('bluebird'),
   _ = require('lodash'),
-  async = require('async')
+  async = require('async'),
+  util = require('./util')
 
-
+Promise.longStackTraces();
 
 /**
  * Bus是一个超级事件代理类。除了普通的on/fire操作以外，它还能有以下高级特性：
@@ -440,7 +441,6 @@ Bus.prototype.fire = function (opt) {
 
   console.log("[BUS] firing :", eventOrg, 'bus id:', this._id)
 
-
   var caller = arguments.callee.caller.name
 
   var matchedEventStack = [ _.extend({arguments: []}, this.$$events || this._events)],
@@ -448,7 +448,7 @@ Bus.prototype.fire = function (opt) {
     root = this,
     results = {},
     firer = root.standardListener({module: root.module, name: caller}),
-    firePromise = Q.defer()
+    firePromise = defer()
 
   root['$$results'] = root['$$results'] || {}
   opt = opt || {}
@@ -492,7 +492,6 @@ Bus.prototype.fire = function (opt) {
   forEachSeries(matchedEventStack, function (matchedEvent, i, nextEvent) {
     if( error ) return nextEvent(error);//break the loop
 
-////
     forEachSeries(matchedEvent.listeners, function (listener, j, nextListener) {
       //set $$traceRef back
 
@@ -500,11 +499,13 @@ Bus.prototype.fire = function (opt) {
       if (muteList[listener.name] === undefined) {
         if (root.opt.track) {
           root.$$traceRef = currentEventRef.attached[i].listeners[j]
+
           root.$$traceRef.argv = matchedEvent.arguments.concat( cloneOwnProperties(args))
+
         }
 
         console.log("[BUS] applying :", eventOrg, listener.module, listener.name)
-
+        debugger;
         var res = listener.function.apply(root.snapshot(), matchedEvent.arguments.concat(args))
 
         if (root.opt.track) {
@@ -512,51 +513,62 @@ Bus.prototype.fire = function (opt) {
           currentEventRef.attached[i].listeners[j].result = res
         }
 
-        results[listener.name] = res
+        //save current result
+        if( results[listener.name] ){
+          if( !_.isArray( results[listener.name])){
+            results[listener.name] = [results[listener.name]]
+          }
+          results[listener.name].push(res)
+        }else{
+          results[listener.name] = res
+        }
+
         if( res instanceof  BusError ){
+          console.error("[BUS] error: listener apply ",eventOrg, listener.name)
           error = res
           return nextListener(res)//break the loop
-        }else if(Q.isPromise(res) && res.block){
+
+        }else if(util.isPromiseAlike(res) && res.block){
+
           res.then(function(){nextListener()})
-          res.fail(nextListener)
+          res.catch(nextListener)
+
         }else{
+
           nextListener()
+
         }
       }else{
         nextListener()
       }
-    }, function allListenerExecuted(){
-      nextEvent()
-    })
+    }, nextEvent)
 
   }, function allMatchedEventTriggered( err ){
     if( err ){
-      return console.log("bus fire error!!!",err)
+      console.log("[BUS] error", eventOrg)
+      console.trace(err)
+      return firePromise.reject( err )
     }
-
-    var allPromise = nestedBusPromise(results)
-    allPromise.then(firePromise.resolve)
-    allPromise.fail(firePromise.reject)
+    firePromise.resolve(nestedBusPromise(results))
   })
+
+  if(root['$$results'][eventOrg]){
+    if( !_.isArray(root['$$results'][eventOrg])){
+      root['$$results'][eventOrg] = [root['$$results'][eventOrg]]
+    }
+    root['$$results'][eventOrg].push( firePromise.promise)
+  }else{
+    root['$$results'][eventOrg] = firePromise.promise
+  }
 
   //set it back
   if (root.opt.track)  root.$$traceRef = currentRef
 
-  _.extend(root['$$results'], _.zipObject([eventOrg], [results]))
-//  console.log( "$$results",root['$$results'])
-
   this._fired = true
-//  var output = nestedBusPromise(results)
-//  if( eventOrg=='user.register.before'){
-//    results['invite.checkInviteCode'].then(function(){
-//      console.log('invite.checkInviteCode then',arguments)
-//    }).fail(function(err){
-//      console.log('invite.checkInviteCode fail',err)
-//    })
-//  }
-//  return output
   return firePromise.promise
 }
+
+
 
 Bus.prototype.fcall = function(   ){
   var root = this.snapshot(),
@@ -568,12 +580,12 @@ Bus.prototype.fcall = function(   ){
   var result = root.fire.apply( root,[eventOrg + ".before"].concat( args)).then( function(res){
 
     var result = fn.apply(root, args)
-    if(result && _.isFunction(result.then )){
+    if( util.isPromiseAlike(result) ){
       return result.then( function(){
         return root.fire.apply( root, [eventOrg + ".after" ].concat(args))
-      }).fail(function(err){
-        console.log("err",err)
       })
+    }else if( result instanceof BusError ){
+      return Promise.reject(result)
     }else{
       return root.fire.apply( root, [eventOrg + ".after" ].concat(args))
     }
@@ -589,73 +601,39 @@ Bus.prototype.fcall = function(   ){
 /*  Promise extension   */
 /************************/
 
+
+
+
+
 function nestedBusPromise( obj ){
-  var defer = Q.defer(),
-    promiseOrErrorChild
 
-  if( !_.isObject(obj)){
-    defer.resolve(obj)
+  return new Promise(function( resolve, reject){
 
-  }else if( Q.isPromise( obj )){
-    obj.then(function( resolvedObj ){
-      return nestedBusPromise( resolvedObj).then( function(){
-        defer.resolve( extractPromiseValue( obj ))
-      })
-    }).fail( defer.reject )
+    //1. resolve naive value
+    if( !_.isObject(obj) || util.isPromiseAlike( obj )){
+      resolve(obj)
 
-  }else if( obj instanceof BusError ){
-    console.log("nestedBusPromise error",obj)
-    defer.reject( obj.status)
-  }else{
-    promiseOrErrorChild = extractPromiseOrErrorChildren(obj)
+      //2. reject immediate when error
+    }else if( obj instanceof BusError ){
+      reject( obj.status)
 
-    if( promiseOrErrorChild.length ){
-      Q.all( promiseOrErrorChild ).then( function(){
-        defer.resolve( extractPromiseValue( obj ) )
-      }).fail(function(err){
-        defer.reject(err)
-      })
-
+      //3. wait for child in object or array resolve
     }else{
-      defer.resolve( obj )
-    }
-  }
 
-  return defer.promise
-}
+      var handler = _.isArray(obj) ? 'all' :'props'
 
-function extractPromiseOrErrorChildren(obj, resultContainer){
-  resultContainer = resultContainer || []
+      resolve(Promise[handler](_.map(obj, function( child){
+        return  nestedBusPromise(child)
+      })))
 
-  if( !_.isObject(obj) ) return resultContainer
-
-  _.forEach(obj, function( v, name ){
-    if(Q.isPromise(v) ){
-      resultContainer.push( v )
-
-    }else if(v instanceof BusError){
-
-      resultContainer.push( rejectedPromise(v.status) )
-
-    }else{
-      resultContainer = resultContainer.concat( extractPromiseOrErrorChildren(v) )
     }
   })
-
-  return resultContainer
 }
 
-function rejectedPromise( err ){
-  return Q.Promise(function( resolve, reject){ reject(err) })
-}
-
-function resolvedPromise( obj ){
-  return Q.Promise(function(resolve){ resolve(obj)})
-}
 
 function extractPromiseValue( values ){
   return _.mapValues( values, function(i){
-    if( Q.isPromise(i) ){
+    if( util.isPromiseAlike(i) ){
       return extractPromiseValue(i.value)
     }else if(_.isObject( i)){
       return extractPromiseValue(i)
@@ -672,6 +650,7 @@ function extractPromiseValue( values ){
  */
 Bus.prototype.then = function(cb){
   //TODO every time we call then, we create a new promise based on current $$result, better way to do this?
+
 
   var root = this
 
@@ -692,12 +671,12 @@ Bus.prototype.then = function(cb){
  * @param cb
  * @returns {*}
  */
-Bus.prototype.fail = function(cb){
+Bus.prototype.catch = function(cb){
   //TODO every time we call fail, we create a new promise based on current $$result, better way to do this?
 
   var root = this
 
-  return nestedBusPromise( root['$$results'] ).fail(function( err ){
+  return nestedBusPromise( root['$$results'] ).catch(function( err ){
     return cb.call( root, err )
   })
 }
@@ -758,10 +737,8 @@ function cloneOwnProperties(object){
     _.forEach(obj,function(v,k){
       if(_.isObject(obj) && obj.hasOwnProperty &&!obj.hasOwnProperty(k)) return
 
-      var i = cached.indexOf( v)
-
-      if( i !== -1 ){
-        result[k] = "{circular reference of "+cachedNamespace[i]+"}"
+      if( cached.indexOf( v) !== -1 ){
+        result[k] = "{circular reference of "+cachedNamespace[cached.indexOf( v)]+"}"
       }else{
         if( _.isArray(v) || _.isObject(v)){
           cached.push(v)
@@ -780,20 +757,40 @@ function cloneOwnProperties(object){
   return result
 }
 
-function forEachSeries(array, handler, callback  ){
-  var i = -1
 
-  function next(){
+function defer() {
+  var resolve, reject;
+  var promise = new Promise(function() {
+    resolve = arguments[0];
+    reject = arguments[1];
+  });
+  return {
+    resolve: resolve,
+    reject: reject,
+    promise: promise
+  };
+}
+
+function forEachSeries(array, handler, callback  ){
+  if( !_.isArray ){
+    throw new Error("trying to use forEachSeries in non-array")
+  }
+
+  var root = this
+  function next(i, err){
+    if( err ) return callback&&callback(err)
+
     try{
-      i =  i+1
-      array[i] ? handler( array[i],i, next) : (callback && callback())
+      _.isUndefined(array[i]) ? (callback && callback()) : handler( array[i],i, next.bind(root,i+1) )
     }catch(e){
       callback && callback(e)
     }
   }
 
-  next()
+  next(0)
 }
+
+
 
 
 module.exports = Bus

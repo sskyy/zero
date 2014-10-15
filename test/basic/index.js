@@ -121,4 +121,22 @@ describe('bus test.',function(){
     console.log( bus.$$data )
     assert.equal( 3, Object.keys( bus['$$data'].respond.data).length)
   })
+
+  it("should execute in order", function( cb ){
+    q.Promise(function(resolve, reject){
+      resolve()
+    }).then(function(){
+      return q.Promise(function(resolve){
+        setTimeout(function(){
+          console.log(1)
+          resolve()
+        },500)
+      })
+    }).fail(function(){
+      console.log(2)
+    }).then(function(){
+      console.log(3)
+      cb()
+    })
+  })
 })

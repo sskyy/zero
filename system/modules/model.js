@@ -1,4 +1,4 @@
-var q = require('q'),
+var Promise = require('bluebird'),
   Waterline = require('waterline'),
   _ = require('lodash')
 
@@ -54,7 +54,7 @@ function extendListener(module) {
           //we should use cloned orm model function, so inside the function we can trigger lifecycle callbacks
           var clonedModel = cloneModel(module.models[name], name, bus.snapshot())
 
-          return clonedModel[method].apply(clonedModel, arguments).then(done).fail(fail)
+          return clonedModel[method].apply(clonedModel, arguments).then(done).catch(fail)
 
           function done(data){
             if( data ){
@@ -64,7 +64,6 @@ function extendListener(module) {
           }
 
           function fail(err){
-            console.error("model err", err)
             return bus.error(err)
           }
         }
@@ -84,7 +83,7 @@ function cloneModel( model,name, bus ){
       var transformCallbackName = callbackName.replace(/([a-z]+)([A-Z])([a-z]+)/,"$2$3.$1").toLowerCase()
       bus.fire( name+"."+transformCallbackName, val).then( function(){
         cb()
-      }).fail(function(err){
+      }).catch(function(err){
         ZERO.error("LIFE CYCLE CALLBACK FAILED",err)
         cb(name+"."+transformCallbackName + " failed" )
       })
@@ -132,7 +131,7 @@ module.exports = {
       root.orm.loadCollection(Waterline.Collection.extend(model))
     })
 
-    return q.promise(function (resolve, reject) {
+    return new Promise(function (resolve, reject) {
       root.orm.initialize(config, function (err, models) {
         if (err) return reject( err);
 

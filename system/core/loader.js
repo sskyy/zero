@@ -67,7 +67,7 @@ function callInit( moduleName, from, cb ){
         module.status = 'initialized'
         cb()
       })
-    }).fail( function(err){
+    }).catch( function(err){
       console.log(err)
     })
   })

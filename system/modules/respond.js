@@ -20,8 +20,7 @@ module.exports = {
 
             if( !respond ){
               ZERO.mlog("respond"," NOTHING HAPPENED", req.bus._id )
-              res.status(404)
-              res.send("404")
+              res.status(404).send("404")
             }else{
               ZERO.mlog("respond"," <---------------begin to respond-------------->",respond.file,respond.page)
 
@@ -39,7 +38,7 @@ module.exports = {
                 })
               }
             }
-        }).fail(function( err ){
+        }).catch(function( err ){
           ZERO.error("respond last handler error",err)
           res.status(err.status || 500).json({errors: req.bus.$$error })
         })

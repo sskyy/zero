@@ -1,6 +1,7 @@
 var loader = require('./loader'),
-  q = require('q'),
+  Promise = require('bluebird'),
   _ = require('lodash'),
+  util = require('./util'),
   orderedCollection = require('./orderedCollection')
 
 module.exports = function( app, opt, cb ){
@@ -20,17 +21,20 @@ module.exports = function( app, opt, cb ){
         ZERO.mlog("bootstrap", module.name)
         //when every module is initialized, call their bootstrap function
 
+        try{
           var bootstrapResult = _.isFunction(module.bootstrap) ?
-          module.bootstrap.call(module) :
-          (_.isFunction(module.bootstrap.function) && module.bootstrap.function.call(module))
+            module.bootstrap.call(module) :
+            (_.isFunction(module.bootstrap.function) && module.bootstrap.function.call(module))
 
-        q.isPromise( bootstrapResult ) ? bootstrapResult.then(function(){next()}).fail(next) : next()
 
-      }, function( err ){
-        console.log("================callback, ",err)
-        if(err) return ZERO.error(err)
-        cb()
-      })
+          util.isPromiseAlike( bootstrapResult ) ? bootstrapResult.then(function(){next()}) : next()
+
+        }catch(e){
+          ZERO.error("bootstrap error happened in module", module.name)
+          console.trace(e)
+        }
+
+      }, cb)
 
   })
 }
