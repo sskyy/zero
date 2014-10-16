@@ -36,7 +36,7 @@ module.exports = function( program ){
         })
 
         //output JSON
-        fse.outputJsonSync(path.join(zeroPath,"package.json"),packageInfo)
+        fse.outputJsonSync(path.join(appPath,"package.json"),packageInfo)
 
       }catch(e){
         console.log("generate app failed, due to")
