@@ -1,9 +1,14 @@
 {
   "name": "zerojs",
-  "private": true,
+  "homepage": "http://zerojs.io",
+  "private": false,
   "version": "0.1.0",
   "description": "To be the best CMS framework",
-  "keywords": [],
+  "keywords": ["CMS","web-framework","express","zerojs"],
+  "bin" : {
+    "zero":"./bin/zero.js"
+  },
+  "directories" : {},
   "dependencies": {
     "async": "~0.9.0",
     "base64": "~2.1.0",
@@ -63,6 +68,6 @@
     "type": "git",
     "url": "git://github.com/sskyy/zero.git"
   },
-  "author": "sskyy",
+  "author": "sskyy <zhenyu@zerojs.io>",
   "license": ""
 }

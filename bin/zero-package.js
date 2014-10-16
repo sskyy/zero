@@ -5,7 +5,7 @@ var  Repo = require('git').Repo,
   fs = require('fs'),
   path = require('path')
 
-var subProgram = require('commander');
+//var subProgram = require('commander');
 
 
 function absolutePath( inputPath ){
