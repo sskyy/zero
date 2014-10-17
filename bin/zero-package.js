@@ -1,4 +1,4 @@
-var packages = require('./packages')
+var packages = require('./registry').packages
 var _ = require('lodash')
 var  Repo = require('git').Repo,
   Git = require('git').Git,

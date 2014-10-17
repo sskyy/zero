@@ -1,0 +1,28 @@
+{
+  "packages" : {
+    "twentyone": {
+      "author": "http://github.com/sskyy/zero-author",
+      "board": "http://github.com/sskyy/zero-board",
+      "chat": "http://github.com/sskyy/zero-chat",
+      "file": "http://github.com/sskyy/zero-file",
+      "index": "http://github.com/sskyy/zero-index",
+      "invite": "http://github.com/sskyy/zero-invite",
+      "like": "http://github.com/sskyy/zero-like",
+      "mail": "http://github.com/sskyy/zero-mail",
+      "node": "http://github.com/sskyy/zero-node",
+      "qiniu": "http://github.com/sskyy/zero-qiniu",
+      "rbac": "http://github.com/sskyy/zero-rbac",
+      "statistic": "http://github.com/sskyy/zero-statistic",
+      "storage": "http://github.com/sskyy/zero-storage",
+      "theme": "http://github.com/sskyy/zero-theme",
+      "twentyone": "http://github.com/sskyy/twentyone",
+      "user": "http://github.com/sskyy/zero-user"
+    }
+  },
+  "modules" : {
+    "twentyone": "http://github.com/sskyy/twentyone"
+  }
+}
+
+
+
