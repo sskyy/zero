@@ -11,18 +11,27 @@ var nodeModulePath = path.join( process.cwd(), 'node_modules')
 
 module.exports = function(program){
 
-  program.command("install <moduleName>")
+  program.command("install [moduleName]")
     .description("install a module and its dependencies")
     .action(function( moduleName){
-      if( !moduleName ){
-        return console.log("module not specified")
-      }
 
       //TODO parse version
       npm.load({}, function (err) {
         if( err ) return console.log(err)
+        var moduleNames = []
 
-        install([moduleName], function(err){
+        if( !moduleName ){
+          fs.readdirSync(modulePath).forEach(function( installedModule ){
+            if( /^\./.test(installedModule)) return
+
+            var dependencies = Object.keys(fse.readJsonSync( path.join( modulePath, installedModule,'package.json')).zero.dependencies)
+            moduleNames = _.union( moduleNames, dependencies)
+          })
+        }else{
+          moduleNames = [moduleName]
+        }
+
+        install(moduleNames, function(err){
           console.log("installing", moduleName,"done",err||"")
         })
       })
