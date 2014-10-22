@@ -27,6 +27,7 @@ module.exports = function( program ){
         fse.ensureDirSync( appPath )
         fse.copySync(path.join(zeroPath,"lib/app"),appPath)
         fs.mkdirSync( path.join(appPath ,"node_modules"))
+        fs.mkdirSync( path.join(appPath ,"modules"))
 
         //extract node_modules
         var packageInfo = _.extend(require(path.join(zeroPath,'lib/package.sample.json')),{name:appName})

@@ -49,7 +49,7 @@ function install( modules, currentModuleInstalled ){
         }
 
         //1. move module folder
-        fse.renameSync( path.join(nodeModulePath,npmModuleName), path.join( modulePath, moduleName))
+        fs.renameSync( path.join(nodeModulePath,npmModuleName), path.join( modulePath, moduleName))
 
         //2. read zero dependencies
         var dependencies = Object.keys(fse.readJsonSync( path.join( modulePath, moduleName,'package.json')).zero.dependencies)
