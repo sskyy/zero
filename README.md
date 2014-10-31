@@ -1,5 +1,6 @@
 
-[![npm version](https://badge.fury.io/js/zero@2x.png)](http://badge.fury.io/js/zero)
+[![npm version](https://badge.fury.io/js/zero.png)](http://badge.fury.io/js/zero)
+[![Build Status](https://travis-ci.org/sskyy/zero.svg?branch=master)](https://travis-ci.org/sskyy/zero)
 
 ## 简介
 
