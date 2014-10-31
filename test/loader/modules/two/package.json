@@ -1,9 +1,14 @@
 {
-  "name": "two",
+  "name": "zero-two",
   "private": true,
   "version": "0.1.0",
   "description": "To be the best CMS framework",
   "keywords": [],
+  "zero" : {
+    "dependencies" : {
+      "one" : "^0.0.1"
+    }
+  },
   "main": "index.js",
   "author": "sskyy",
   "license": ""

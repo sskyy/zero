@@ -1,10 +1,5 @@
 
-
-<div style="background:#334556;width:30%;padding:0 10px">
-<img src="http://zerojs.io/images/logo.png" width="100%">
-</div>
-
-
+[![npm version](https://badge.fury.io/js/zero@2x.png)](http://badge.fury.io/js/zero)
 
 ## 简介
 

@@ -1,17 +1,19 @@
-var loader = require('../../system/core/loader'),
+var loader = require('../../lib/app/system/core/loader'),
   path = require('path'),
-  bootstrap  = require('../../system/core/bootstrap')
+  fs = require('fs'),
+  bootstrap  = require('../../lib/app/system/core/bootstrap'),
+  assert = require("assert")
+
 
 describe('loader test.', function(){
-
-  it("should load module all modules", function(cb){
-
-
-    loader.loadAll({modulePath:path.join(__dirname , './modules'),systemModulePath:path.join(__dirname , './systemModules')}, function(){
-      console.log( loader.modules() )
+  it("should load all modules", function(cb){
+    var modulePath = path.join(__dirname , './modules')
+    var moduleFiles = fs.readdirSync(modulePath).filter(function(r){ return !/^\./.test(r)})
+    loader.loadAll({modulePath:modulePath}, function( err, modules){
+      assert.equal(err,undefined)
+      assert.equal( Object.keys(modules).toString(), moduleFiles.toString())
       cb()
     })
   })
-
 
 })
