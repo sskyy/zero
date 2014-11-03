@@ -7,6 +7,7 @@ program
   .usage('zero command line')
 
 require("./zero-update")(program)
+require("./zero-upgrade")(program)
 require("./zero-install")(program)
 require("./zero-package")(program)
 require("./zero-new")(program)

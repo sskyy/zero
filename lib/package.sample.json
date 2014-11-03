@@ -42,7 +42,7 @@
     "tosource": "^0.1.2",
     "validate": "~2.1.5",
     "waterline": "~0.10.9",
-    "webkit-devtools-agent": "^0.3.1"
+    "winston": "^0.8.1"
   },
   "scripts": {
     "start": "node app.js",
