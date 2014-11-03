@@ -2,7 +2,7 @@
   "name": "zero",
   "homepage": "http://zerojs.io",
   "private": false,
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "To be the best CMS framework",
   "keywords": [
     "CMS",
@@ -20,6 +20,7 @@
     "body-parser": "~1.6.7",
     "colors": "~0.6.2",
     "commander": "^2.3.0",
+    "compression": "^1.2.0",
     "ejs": "~0.8.8",
     "express": "~4.8.7",
     "express-session": "^1.9.0",
