@@ -25,6 +25,7 @@ zero install twenty
 
 ...waiting for twenty install...
 
+cp modules/twenty/config.sample.js modules/twenty/config.js
 node app
 ```
 
