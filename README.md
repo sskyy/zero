@@ -2,7 +2,7 @@
 [![npm version](https://badge.fury.io/js/zero.png)](http://badge.fury.io/js/zero)
 [![Build Status](https://travis-ci.org/sskyy/zero.svg?branch=master)](https://travis-ci.org/sskyy/zero)
 
-## 简介
+## Introduction
 
 [http://www.zerojs.io](http://zerojs.io)。  
 zero 是一个基于 node.js 的 web 开发框架。它能帮助你快速地开发博客、论坛、商城等系统。它的特点在于:
@@ -18,7 +18,7 @@ zero 是一个基于 node.js 的 web 开发框架。它能帮助你快速地开�
 
 
 ```
-npm install zero
+npm install zero -g
 zero new blog
 cd blog
 zero install twenty
