@@ -1,48 +1,66 @@
 [![npm version](https://badge.fury.io/js/zero.png)](http://badge.fury.io/js/zero)
 [![Build Status](https://travis-ci.org/sskyy/zero.svg?branch=master)](https://travis-ci.org/sskyy/zero)
 
-## Introduction
+## 1 Introduction
 
-[http://www.zerojs.io](http://zerojs.io)。
 Zero is a node.js web framework. It can help you build website or application in an extremely easy way.
 There are two main features make zero different from other framework:
 
- - Behavior based module system.
- - Using event to build system logic.
+### 1.1 Behavior based module system
+
+Related modules does not related in code level, but in system behavior level. That means in most case module can be added or removed without changing related module's codes, and system may still working well.
+ 
+### 1.2 Using event to build system logic
+
+Zero has several powerful module to help you build your system using event.  So module can loose couple easily. What is more amazing is that zero dev tool can trace the event fire stack for every request and make a graph for you.
 
 
-## Quick start
+## 2 Quick start
 
 You can use codes below to install a blog system [twenty](http://twentyjs.com) based on zero .
 
 
 ```
-npm install zero -g
-zero new blog
-cd blog
-zero install twenty
+>  npm install zero -g
+>  zero new blog
+>  cd blog
+>  zero install twenty
 
 ...waiting for twenty install...
 
-cp modules/twenty/config.sample.js modules/twenty/config.js
-node app
+>  cp modules/twenty/config.sample.js modules/twenty/config.js
+>  node app
 ```
 
-## basic usage
+If you are a developer, we strongly suggest you to install dev tool to explore the system.
 
-### Creating application ###
+
+```
+>  zero install dev //in root of your application
+```
+
+Simply visit http://localhost:3000/dev/index.html to open dev tool.
+
+Other packages to play with:
+
+ - [nine](http://github.com/sskyy/zero-nine) A GTD application integrated with tomato clock. Remember remove twenty before install it, this module use multiple user system which may conflict with twenty.
+ - [color](http://github.com/hi-caicai/color) A simple application for you to create your own color wall. Conflict with twenty too.
+
+## 3 basic usage
+
+### 3.1 Creating application ###
 
 Run `zero new <app_name>` in any directory.
 
-### Installing zero module ###
+### 3.2 Installing zero module ###
 
 Simply execute `zero install <module_name>` in root of you application.
 
-### Creating zero module ###
+### 3.3 Creating zero module ###
 
 Zero module follow the standard npm package rules, the only restrict is that you should name your module name start with `zero-` in package.json.
 
-### Using other zero module as dependency ###
+### 3.4 Using other zero module as dependency ###
 
 Declare zero dependency in package.json like:
 
@@ -59,12 +77,13 @@ Declare zero dependency in package.json like:
 
 When zero start, it will call all dependency modules' `expand` method, and pass current module instance to it, so dependency may extend current module's behavior.
 
-## develop resources
+## 4 developer guide
 
- - How to develop a blog.
- - How to develop a forum
- - How to develop a chatroom.
- - Popular modules.
+We strongly suggest you explore the code of [twenty](http://github.com/sskyy/zero-twenty), which used the most of zero popular modules.
+And install zero dev tool to see the real advantage of using zero.
+We will soon release a complete developer guide for building blog, forum and other popular type of website.
+
+
 
 
 
