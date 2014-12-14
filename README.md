@@ -93,7 +93,7 @@ When zero start, module's instance will be passed to its dependency's `expand` m
 We strongly suggest you explore the code of [twenty](http://github.com/sskyy/zero-twenty), which used the most of zero popular modules.
 And try to install zero dev tool to see the real advantage of using zero. Some step by step guide are list below:
 
- - [How to use zero to develop a blog](./docs/en/how-to-use-zero-develop-a-blog.md)
+ - [How to use zero to develop a blog](./docs/en/how-to-use-zero-to-develop-a-blog.md)
 
 ## 5 I18n
 
