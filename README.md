@@ -3,21 +3,24 @@
 
 ## 1 Introduction
 
-Zero is a node.js web framework. It can help you build website or application in an extremely easy way.
-There are two main features make zero different from other framework:
+Zero is a node.js web framework. It can help you build robust and flexible application in an extremely easy way.
+The two main features make zero different from other framework are:
 
 ### 1.1 Behavior based module system
 
-Related modules does not related in code level, but in system behavior level. That means in most case module can be added or removed without changing related module's codes, and system may still working well.
+Modules provide behavior convention instead of calling invention. Which means once a module is installed, provided behavior will be attached to the system automatically without a single line of calling its api. For example, if you install `user` module, the routers to handle login and registry is set, and the user model is built.  
+The purpose of behavior convention is to reduce the reduplicate work of implementing common logics, such as user login, to its limits. And the other goodnees comes along is that, it makes system more flexible for enable or disable behavior doesn't require code changing.
  
-### 1.2 Using event to build system logic
+### 1.2 Using event to organize business logic
 
-Zero has several powerful module to help you build your system using event.  So module can loose couple easily. What is more amazing is that zero dev tool can trace the event fire stack for every request and make a graph for you.
+There are several powerful module to help you build your system using event in zero. Modules can be loosely coupled easily. What is more amazing is that, the event fire stack for every request can be dumped and made into a graph by using zero dev tool.  
+This shares the same philosophy of not changing existing code with Behavior Based Module System.  
+With this feature, we are planing on something really awesome called Cross Language Event. It will enable zero to trigger events handled by another zero system implemented in a different language like Go or Python. Once this work is done, developers can share or reuse all zero modules of any supported languages.
 
 
 ## 2 Quick start
 
-You can use codes below to install a blog system [twenty](http://twentyjs.com) based on zero .
+Let's try to install a blog system [twenty](http://twentyjs.com) based on zero.
 
 
 ```
@@ -32,19 +35,27 @@ You can use codes below to install a blog system [twenty](http://twentyjs.com) b
 >  node app
 ```
 
-If you are a developer, we strongly suggest you to install dev tool to explore the system.
+For further information to use the blog, please visit [https://github.com/sskyy/zero-twenty](https://github.com/sskyy/zero-twenty).
+
+Developer are strongly suggestted to install dev tool(it is a module too) to explore the system.
 
 
 ```
->  zero install dev //in root of your application
+>  zero install dev //at root of your application
 ```
 
-Simply visit http://localhost:3000/dev/index.html to open dev tool.
+Simply visit http://localhost:3000/dev/index.html to open dev tool. You should see something like this:
 
-Other packages to play with:
+<img src="./docs/screen1.png" alt="screen1" width="100%" />
 
- - [nine](http://github.com/sskyy/zero-nine) A GTD application integrated with tomato clock. Remember remove twenty before install it, this module use multiple user system which may conflict with twenty.
- - [color](http://github.com/hi-caicai/color) A simple application for you to create your own color wall. Conflict with twenty too.
+Zero dev tool is very powerful, you can checkout model definitions, mock any request to view the event fire stack and even edit event handler's code at realtime. Try it you self!  
+
+Other awesome modules(or package) to play with:
+
+ - [Nine](http://github.com/sskyy/zero-nine) A GTD application integrated with tomato clock. Remember remove twenty before install this one, this module use multiple user system which may conflict with twenty.
+ - [Color](http://github.com/hi-caicai/color) A simple application for you to create your own color wall. Conflict with twenty too.
+
+You may notice that there's no difference between a module and a application package, so mostly diffrent application can exist at same time.
 
 ## 3 basic usage
 
@@ -75,16 +86,20 @@ Declare zero dependency in package.json like:
 }
 ```
 
-When zero start, it will call all dependency modules' `expand` method, and pass current module instance to it, so dependency may extend current module's behavior.
+When zero start, module's instance will be passed to its dependency's `expand` method, so extra behavior can be extend to it. Visit [http://www.zerojs.io/modules](http://www.zerojs.io/modules) to checkout available module's and their's usage.
 
 ## 4 developer guide
 
 We strongly suggest you explore the code of [twenty](http://github.com/sskyy/zero-twenty), which used the most of zero popular modules.
-And install zero dev tool to see the real advantage of using zero.
-We will soon release a complete developer guide for building blog, forum and other popular type of website.
+And try to install zero dev tool to see the real advantage of using zero. Some step by step guide are list below:
 
+ - [How to use zero to develop a blog](./docs/en/how-to-use-zero-develop-a-blog.md)
 
+## 5 I18n
 
+ - [简体中文](./docs/zh-cn/README.md)
+
+We need your PR for docs of other languages!
 
 
 
