@@ -52,16 +52,16 @@ Simply create a new folder named `blog` in folder `/modules`. Add a new package.
 }
 ```
 
-To be clear that zero's dependencies is not the same as node module dependencies, you need to declare it in `zero` just like the code above. We will give details about what each module do. After the package.json was created, run 
+To be clear that zero's dependencies is not the same as node module dependencies, you need to declare it in field `zero` just like the code above. We will give details about what each module do. After the package.json was created, run 
 
 ```
 > zero install
 ``` 
-at the root of the application, this command will help you install every denpendent module automatically.
+at the root path of the application, this command will help you install every denpendent module automatically.
 
 ### 3 Create module entrance
 
-Beside declaration of dependencies, zero module has nothing more diffrent than a node module. If you are not familiar with nodejs that would be ok, just follow the guide. Now you need to create a js file named `index.js` as entrance of your module. And write the basic lines of code:
+Beside the declaration of dependencies, zero module has nothing more diffrent than a node module. If you are not familiar with nodejs that would be ok, just follow the guide. Now you need to create a js file named `index.js` as entrance of your module. And write the basic lines of code:
 
 ```
 module.exports = {
@@ -71,7 +71,7 @@ module.exports = {
 
 ### 4 Declare models
 
-The model module use [waterline](https://github.com/balderdashy/waterline)(a nodejs ORM) to build collections(or create tables) in your database automatically, the only thing you need to do is just write declaration like:
+The model module use [waterline](https://github.com/balderdashy/waterline)(a nodejs ORM) to build collections(or tables) in your database automatically, the only thing you need to do is adding the declaration like:
 
 ```
 /* file: index.js*/
@@ -88,11 +88,11 @@ module.exports = {
 }
 ```
 
-The code is quite self-explainable. For more details about the declaration please read waterline's document.
+The code is quite self-explainable. For more details about the model usage please read waterline's document.
 
 ### 5 Add RESTful API and other advanced functions to models
 
-Restful API for certain model can be generated once you assign the attribute `rest` to `true` in your model. And set `isNode` to `true` will enable brief auto generating for specified fields of the model. After the change your code would be like: 
+Restful API for certain model can be generated once you assign the attribute `rest` to `true` in your model. And set `isNode` to `true` will enable auto-briefingh for specified fields of the model. Now, your code would be like: 
 
 ```
 /* file: index.js*/
@@ -115,7 +115,8 @@ Remeber these two extra lines of declaration works only if you declared the denp
 
 ### 6 Add front-end files
 
-Front-end files can served by both `theme` module and `statics` module. The diffrence between these two modules is that statics module servei file just as static resources while theme module do not only serving static file but also render template files like jade or ext with specified data. Add theme configuration to your code like:
+Front-end files can be served by both `theme` module and `statics` module. The diffrence between these two modules is that statics module serve files just as static resources while theme module do not only serving static file but also render template files like `jade` or `ext` with data.   
+Add theme configuration to your code:
 
 ```
 module.exports = {

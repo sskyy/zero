@@ -1,0 +1,10 @@
+{
+  "name": "zero-one",
+  "private": true,
+  "version": "0.1.0",
+  "description": "To be the best CMS framework",
+  "keywords": [],
+  "main": "index.js",
+  "author": "sskyy",
+  "license": ""
+}
