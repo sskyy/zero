@@ -6,14 +6,14 @@
 Zero is a node.js web framework. It can help you build robust and flexible applications in an extremely easy way.
 The two main features that make zero different from other framework are:
 
-### 1.1 Behavior based module system
+### 1.1 Behavior-based Module System
 
-Modules provide behavior convention instead of calling invention. Which means once a module is installed, provided behavior will be attached to the system automatically without a single line of calling its api. For example, if you install the `user` module, the routers to handle login and registry is set, and the user model is built.
+Zero modules use a behavioral convention rather than a calling convention. Once a module is installed, provided behavior will be available to the system automatically without calling a single line of its api. For example, if you install the `user` module, the routers to handle login and registry is set, and the user model is built.
 The purpose of behavior convention is to reduce the reduplicate work of implementing common logics, such as user login, to its limits. And the other beeifit is that it makes system more flexible for enable or disable behavior doesn't require code changing.
  
-### 1.2 Using event to organize business logic
+### 1.2 Advanced Event System
 
-There are several powerful module to help you build your system using event in zero. Modules can be loosely coupled easily. What is more amazing is that, the event fire stack for any request can be dumped and made into a graph by using zero dev tool.
+Using Zero build-in event Class to organize your business logic makes your system more flexible.With Zero Dev Tool installed, an interactive web interface is provided to trace the data flow and the event fire stack of any request.
 This shares the same philosophy of not changing existing code with Behavior Based Module System.  
 With this feature, we are planing on something really awesome called Cross Language Event. It will enable zero to trigger events handled by another zero system implemented in a different language like Go or Python. Once this work is done, developers can share or reuse all zero modules of any supported languages.
 
