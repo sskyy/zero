@@ -1,0 +1,58 @@
+#!/usr/bin/env node
+
+console.log("who am i")
+var program = require('commander');
+var spawn = require('win-spawn');
+var path = require('path');
+var fs = require('fs');
+var join = path.join;
+var exists = fs.existsSync;
+
+
+// usage
+program
+    .version(require('../package.json').version)
+    .usage('<command>');
+
+// sub-command help
+program.on('--help', function(){
+  console.log(`
+    Commands:
+      start    Start program
+  `)
+  process.exit();
+});
+
+// parse argv
+program.parse(process.argv);
+
+// args void of cmd
+var args = process.argv.slice(3);
+
+// command
+var cmd = program.args[0];
+
+// display help
+if (!cmd) program.help()
+
+// executable
+var bin = 'zero-' + cmd;
+
+// display help if bin does not exist
+if (!exists(join(__dirname, bin))) {
+  console.error(`${bin}(1) does not exist`);
+  program.help();
+}
+
+
+var proc = spawn(join(__dirname, bin), args, { stdio: 'inherit', customFds: [0, 1, 2] });
+
+proc.on('error', function(error){
+    console.log( error )
+    process.exit(error.code);
+});
+
+proc.on('close', function(code){
+    console.log( code )
+  process.exit(code);
+});

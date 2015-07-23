@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+
+var program = require('commander')
+var start = require('../lib/start')
+
+
+program
+    .usage('Start a zero program.')
+    .option('-p, --port', 'Port to listen.', 3000)
+    .option('-q, --quiet', 'Display no info.')
+    .parse(process.argv)
+
+var options = {}
+
+program.options.forEach(function(option){
+    var name = option.long.replace('--','')
+    options[name] = program[name]
+})
+
+ start(options)
