@@ -7,17 +7,19 @@
   "keywords": [
     "CMS",
     "web-framework",
-    "express",
+    "koa",
     "zerojs"
   ],
   "bin": {
-    "zero": "./bin/zero.js"
+    "zero": "./bin/zero"
   },
   "directories": {},
   "dependencies": {
     "co": "^4.5.4",
     "colors": "~0.6.2",
     "commander": "^2.3.0",
+    "koa": "~1.0.0",
+    "lodash": "~3.10.1",
     "roof-bus": "0.0.8",
     "win-spawn": "^2.0.0"
   },

@@ -1,0 +1,104 @@
+#!/usr/bin/env node
+
+var npm = require('npm'),
+  path = require('path'),
+  fs = require('fs'),
+  fse = require('fs-extra'),
+  _ = require('lodash'),
+  async = require('async'),
+  colors = require("colors"),
+  program = require('commander')
+
+var cwd = process.cwd()
+var modulePath = path.join(cwd, 'modules')
+var nodeModulePath = path.join(cwd, 'node_modules')
+var options = {
+  registry : '-r, --registry'
+}
+
+
+
+////////////////////
+//        program
+////////////////////
+_.forEach(options, function( optionValue, optionKey ){
+  program
+    .option(`${optionValue} <${optionKey}>`)
+})
+
+  program.description("install a module and its dependencies").parse(process.argv)
+
+
+
+
+var npmOptions = _.pick( program, Object.keys(options))
+var moduleNames = program.args.slice(0, program.args.length -1)
+var modulesToInstall = _.zipObject( moduleNames, _.fill( moduleNames.length, '*'))
+
+
+fse.ensureDirSync( modulePath )
+
+
+npm.load(npmOptions, function (err) {
+  if (err) return console.error(err)
+
+  if (moduleNames.length === 0) {
+
+    //TODO 版本警告
+    _.extend( modulesToInstall, _.get(fse.readJsonSync(path.join(cwd, 'package.json')), 'zero.dependencies', {}))
+
+    console.log('installing zero modules', Object.keys(moduleNames))
+    fs.readdirSync(modulePath).forEach(function (installedModule) {
+      if (/^\./.test(installedModule)) return
+
+      //TODO 版本警告
+      _.extend( modulesToInstall, _.get(fse.readJsonSync(path.join(modulePath, installedModule, 'package.json')), 'zero.dependencies', {}))
+    })
+  }
+
+  console.log( "modulesToInstall", modulesToInstall )
+  install(modulesToInstall, function (err) {
+    console.log("installing", moduleNames, "done", err || "")
+  })
+})
+
+
+
+function install(modules, currentModuleInstalled) {
+
+  console.log("Object.keys(modules)", Object.keys(modules) )
+  async.forEachSeries( Object.keys(modules), function (moduleName, nextModule) {
+
+    if (fs.existsSync(path.join(modulePath, moduleName))) {
+      console.log(moduleName, "exists")
+      return nextModule()
+    }
+
+    var npmModuleName = "zero-" + moduleName
+    console.log("tring to npm install", [`${npmModuleName}@${modules[moduleName]}`])
+
+    npm.commands.install([`${npmModuleName}@${modules[moduleName]}`], function (err) {
+      if (err) {
+        console.log(("install " + npmModuleName).red, "error")
+        console.error(err)
+        return nextModule(err)
+      }
+
+      //1. move module folder
+      fs.renameSync(path.join(nodeModulePath, npmModuleName), path.join(modulePath, moduleName))
+
+      //2. read zero dependencies«
+      var dependencies = _.get(fse.readJsonSync(path.join(modulePath, moduleName, 'package.json')),'zero.dependencies', {})
+
+      //TODO parse version
+      console.log( 'installing dependencies', dependencies,fse.readJsonSync(path.join(modulePath, moduleName, 'package.json')))
+      if ( Object.keys(dependencies).length !== 0) {
+        install(dependencies, nextModule)
+      } else {
+        nextModule()
+      }
+
+
+    })
+  }, currentModuleInstalled)
+}

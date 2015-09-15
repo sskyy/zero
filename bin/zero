@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-console.log("who am i")
 var program = require('commander');
 var spawn = require('win-spawn');
 var path = require('path');
@@ -26,8 +25,6 @@ program.on('--help', function(){
 // parse argv
 program.parse(process.argv);
 
-// args void of cmd
-var args = process.argv.slice(3);
 
 // command
 var cmd = program.args[0];
@@ -36,7 +33,7 @@ var cmd = program.args[0];
 if (!cmd) program.help()
 
 // executable
-var bin = 'zero-' + cmd;
+var bin = `zero-${cmd}`;
 
 // display help if bin does not exist
 if (!exists(join(__dirname, bin))) {
@@ -44,11 +41,13 @@ if (!exists(join(__dirname, bin))) {
   program.help();
 }
 
-
+// args void of cmd
+var args = process.argv.slice(3);
+//console.log('delegate to', join(__dirname, bin), args)
 var proc = spawn(join(__dirname, bin), args, { stdio: 'inherit', customFds: [0, 1, 2] });
 
 proc.on('error', function(error){
-    console.log( error )
+    console.error( error )
     process.exit(error.code);
 });
 
