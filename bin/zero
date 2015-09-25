@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var program = require('commander');
+//var spawn = require('child_process').spawn;
 var spawn = require('win-spawn');
 var path = require('path');
 var fs = require('fs');
@@ -44,7 +45,7 @@ if (!exists(join(__dirname, bin))) {
 // args void of cmd
 var args = process.argv.slice(3);
 //console.log('delegate to', join(__dirname, bin), args)
-var proc = spawn(join(__dirname, bin), args, { stdio: 'inherit', customFds: [0, 1, 2] });
+var proc = spawn(join(__dirname, bin), args, { stdio: 'inherit'});
 
 proc.on('error', function(error){
     console.error( error )
@@ -52,6 +53,6 @@ proc.on('error', function(error){
 });
 
 proc.on('close', function(code){
-    console.log( code )
+  console.log( 'zero exit with code:', code )
   process.exit(code);
 });
