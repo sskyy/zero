@@ -29,10 +29,8 @@ _.forEach(options, function( optionValue, optionKey ){
   program.description("install a module and its dependencies").parse(process.argv)
 
 
-
-
 var npmOptions = _.pick( program, Object.keys(options))
-var moduleNames = program.args.slice(0, program.args.length -1)
+var moduleNames = program.args.slice(0)
 var modulesToInstall = _.zipObject( moduleNames, _.fill( moduleNames.length, '*'))
 
 
@@ -75,12 +73,13 @@ function install(modules, currentModuleInstalled) {
     }
 
     var npmModuleName = "zero-" + moduleName
-    console.log("tring to npm install", [`${npmModuleName}@${modules[moduleName]}`])
+    var version = modules[moduleName] ? `@${modules[moduleName]}` : ''
+    console.log("trying to npm install", [`${npmModuleName}${version}`])
 
-    npm.commands.install([`${npmModuleName}@${modules[moduleName]}`], function (err) {
+    npm.commands.install([`${npmModuleName}@${version}`], function (err) {
       if (err) {
         console.log(("install " + npmModuleName).red, "error")
-        console.error(err)
+        console.log(err.stack)
         return nextModule(err)
       }
 
@@ -91,13 +90,13 @@ function install(modules, currentModuleInstalled) {
       var dependencies = _.get(fse.readJsonSync(path.join(modulePath, moduleName, 'package.json')),'zero.dependencies', {})
 
       //TODO parse version
-      console.log( 'installing dependencies', dependencies,fse.readJsonSync(path.join(modulePath, moduleName, 'package.json')))
+      //console.log( 'installing dependencies', dependencies,fse.readJsonSync(path.join(modulePath, moduleName, 'package.json')))
+      console.log( 'installing dependencies', dependencies)
       if ( Object.keys(dependencies).length !== 0) {
         install(dependencies, nextModule)
       } else {
         nextModule()
       }
-
 
     })
   }, currentModuleInstalled)
