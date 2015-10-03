@@ -6,6 +6,17 @@ var npm = require('npm'),
   async = require('async')
   colors = require("colors")
 
+function pick( obj, toPick ){
+  var result = {}
+  toPick.forEach(function( attr ){
+    if( obj[attr] !== undefined){
+      result[attr] = obj[attr]
+    }
+  })
+  return result
+}
+
+
 var modulePath = path.join( process.cwd(), 'modules')
 var nodeModulePath = path.join( process.cwd(), 'node_modules')
 
@@ -13,10 +24,12 @@ module.exports = function(program){
 
   program.command("install [moduleName]")
     .description("install a module and its dependencies")
+    .option('-r, --registry', 'Registry of module')
     .action(function( moduleName){
 
-      //TODO parse version
-      npm.load({}, function (err) {
+      var npmConfig = pick( program, ['registry'])
+
+      npm.load(npmConfig, function (err) {
         if( err ) return console.log(err)
         var moduleNames = []
 
