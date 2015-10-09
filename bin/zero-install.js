@@ -24,7 +24,7 @@ module.exports = function(program){
 
   program.command("install [moduleName]")
     .description("install a module and its dependencies")
-    .option('-r, --registry', 'Registry of module')
+    .option('-r, --registry registry', 'Registry of module')
     .action(function( moduleName){
 
       var npmConfig = pick( program, ['registry'])
