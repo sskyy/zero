@@ -3,7 +3,7 @@
   "homepage": "http://zerojs.io",
   "private": false,
   "version": "1.0.0",
-  "description": "To be the best CMS framework",
+  "description": "A web framework.",
   "keywords": [
     "CMS",
     "web-framework",
@@ -34,5 +34,5 @@
     "url": "git://github.com/sskyy/zero.git"
   },
   "author": "sskyy <zhenyu@zerojs.io>",
-  "license": ""
+  "license": "MIT"
 }
