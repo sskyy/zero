@@ -9,7 +9,7 @@ The two main features that make zero different from other framework are:
 ### 1.1 Behavior-based Module System
 
 Zero modules use a behavioral convention rather than a calling convention. Once a module is installed, provided behavior will be available to the system automatically without calling a single line of its api. For example, if you install the `user` module, the routers to handle login and registry is set, and the user model is built.
-The purpose of behavior convention is to reduce the reduplicate work of implementing common logics, such as user login, to its limits. And the other benefits is that it makes system more flexible for enable or disable behavior doesn't require code changing.
+The purpose of behavior convention is to reduce the reduplicate work of implementing common logic, such as user login, to its limits. And the other benefits is that it makes system more flexible for enable or disable behavior doesn't require code changing.
  
 ### 1.2 Advanced Event System
 
