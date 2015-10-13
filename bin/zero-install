@@ -7,7 +7,8 @@ var npm = require('npm'),
   _ = require('lodash'),
   async = require('async'),
   colors = require("colors"),
-  program = require('commander')
+  program = require('commander'),
+  spawn = require('win-spawn');
 
 var cwd = process.cwd()
 var modulePath = path.join(cwd, 'modules')
@@ -16,6 +17,10 @@ var options = {
   registry : '-r, --registry'
 }
 
+var log = function(){
+  var args = Array.prototype.slice.call(arguments, 0)
+  console.log.apply( console, ['zero'.cyan].concat(args))
+}
 
 
 ////////////////////
@@ -31,58 +36,59 @@ _.forEach(options, function( optionValue, optionKey ){
 
 var npmOptions = _.pick( program, Object.keys(options))
 var moduleNames = program.args.slice(0)
-var modulesToInstall = _.zipObject( moduleNames, _.fill( moduleNames.length, '*'))
-
+var modulesToInstall = _.zipObject( moduleNames, _.fill(Array( moduleNames.length), 'latest'))
 
 fse.ensureDirSync( modulePath )
 
+if (moduleNames.length === 0) {
 
-npm.load(npmOptions, function (err) {
-  if (err) return console.error(err)
+  //TODO 版本警告
+  _.extend( modulesToInstall, _.get(fse.readJsonSync(path.join(cwd, 'package.json')), 'zero.dependencies', {}))
 
-  if (moduleNames.length === 0) {
+  log('installing zero modules', Object.keys(moduleNames))
+  fs.readdirSync(modulePath).forEach(function (installedModule) {
+    if (/^\./.test(installedModule)) return
 
-    //TODO 版本警告
-    _.extend( modulesToInstall, _.get(fse.readJsonSync(path.join(cwd, 'package.json')), 'zero.dependencies', {}))
-
-    console.log('installing zero modules', Object.keys(moduleNames))
-    fs.readdirSync(modulePath).forEach(function (installedModule) {
-      if (/^\./.test(installedModule)) return
-
-      //TODO 版本警告
-      _.extend( modulesToInstall, _.get(fse.readJsonSync(path.join(modulePath, installedModule, 'package.json')), 'zero.dependencies', {}))
-    })
-  }
-
-  console.log( "modulesToInstall", modulesToInstall )
-  install(modulesToInstall, function (err) {
-    console.log("installing", moduleNames, "done", err || "")
+    //TODO 版本冲突警告
+    _.extend( modulesToInstall, _.get(fse.readJsonSync(path.join(modulePath, installedModule, 'package.json')), 'zero.dependencies', {}))
   })
-})
+}
 
+log( "modulesToInstall", modulesToInstall )
+
+install(modulesToInstall, function (err) {
+  var semanticModuleNames = Object.keys(modulesToInstall).map(key=>`${key}@${modulesToInstall[key]}`)
+  var message =`installation of ${semanticModuleNames} ${err?'failed' : 'finished'}`
+  log( err ? message.red : message.cyan )
+})
 
 
 function install(modules, currentModuleInstalled) {
 
-  console.log("Object.keys(modules)", Object.keys(modules) )
   async.forEachSeries( Object.keys(modules), function (moduleName, nextModule) {
 
     if (fs.existsSync(path.join(modulePath, moduleName))) {
-      console.log(moduleName, "exists")
+      log(moduleName, "exists")
       return nextModule()
     }
 
     var npmModuleName = "zero-" + moduleName
-    var version = modules[moduleName] ? `@${modules[moduleName]}` : ''
-    console.log("trying to npm install", [`${npmModuleName}${version}`])
+    var version = modules[moduleName] ? `${modules[moduleName]}` : ''
+    log("trying to npm install", `${npmModuleName}@${version}`)
 
-    npm.commands.install([`${npmModuleName}@${version}`], function (err) {
-      if (err) {
-        console.log(("install " + npmModuleName).red, "error")
-        console.log(err.stack)
-        return nextModule(err)
-      }
+    var optionStrArray = Object.keys(npmOptions).map(key=>`--${key}=${npmOptions[key]}`)
+    log(`npm install ${npmModuleName}@${version} ${optionStrArray.join(' ')}`)
+    var proc = spawn('npm', `install ${npmModuleName}@${version} ${optionStrArray.join(' ')}`.split(' '),{ stdio: 'inherit'})
 
+    proc.on('error', function(err){
+      log(("install " + npmModuleName).red, "failed, trace stack:")
+      log(err.stack)
+    })
+
+    proc.on('close',function (code) {
+      if( code !== 0 ) return nextModule({code})
+
+      log(`install ${npmModuleName}@${version} ${optionStrArray.join(' ')} done with code ${code}` )
       //1. move module folder
       fs.renameSync(path.join(nodeModulePath, npmModuleName), path.join(modulePath, moduleName))
 
@@ -90,14 +96,14 @@ function install(modules, currentModuleInstalled) {
       var dependencies = _.get(fse.readJsonSync(path.join(modulePath, moduleName, 'package.json')),'zero.dependencies', {})
 
       //TODO parse version
-      //console.log( 'installing dependencies', dependencies,fse.readJsonSync(path.join(modulePath, moduleName, 'package.json')))
-      console.log( 'installing dependencies', dependencies)
+      //log( 'installing dependencies', dependencies,fse.readJsonSync(path.join(modulePath, moduleName, 'package.json')))
+      log( 'installing dependencies', dependencies)
       if ( Object.keys(dependencies).length !== 0) {
         install(dependencies, nextModule)
       } else {
         nextModule()
       }
-
     })
+
   }, currentModuleInstalled)
 }
