@@ -1,0 +1,64 @@
+#!/usr/bin/env node
+
+var fs = require('fs'),
+  fse = require('fs-extra'),
+  path = require('path'),
+  _ = require('lodash'),
+  program = require('commander'),
+  join = path.join
+
+
+var currentPath = process.cwd(),
+  zeroPath = path.join(__dirname, '..')
+
+program.usage('generate new zero app')
+program.parse(process.argv)
+
+newProject( program.args[0])
+
+
+/////////////////////////
+//        generate project
+/////////////////////////
+function newProject( appName ){
+  try {
+    var appPath
+    if (!appName) {
+      if (fs.readdirSync(currentPath).filter(function (p) {
+          return !/\.+/.test(p)
+        }).length) {
+        return console.log('This directory is not empty, abort.')
+      }
+
+      appName = currentPath.split(path.sep).pop()
+      appPath = currentPath
+    } else {
+      appPath = join(currentPath, appName)
+    }
+
+    //mk app structure
+    fse.ensureDirSync(appPath)
+    fse.copySync(join(zeroPath, 'lib/app.js'),join( appPath,'app.js'))
+    fs.mkdirSync(join(appPath, 'node_modules'))
+    fse.ensureDirSync(join(appPath, 'modules'))
+
+    //extract node_modules
+    var packageInfo = _.extend(require(join(zeroPath, 'lib/package.sample.json')), {name: appName})
+    var neededModules = Object.keys(packageInfo.dependencies)
+    neededModules.forEach(function (moduleName) {
+      fs.symlinkSync(join(zeroPath, 'node_modules', moduleName), join(appPath, 'node_modules', moduleName))
+    })
+
+    //output JSON
+    packageInfo.name = `zero-${appName}`
+    fse.outputJsonSync(join(appPath, 'package.json'), packageInfo)
+
+  } catch (e) {
+    console.log('generate app failed, due to')
+    console.trace(e)
+  }
+
+}
+
+
+
