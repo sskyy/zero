@@ -15,6 +15,7 @@
   },
   "directories": {},
   "dependencies": {
+    "async": "~1.4.2",
     "body-parser": "~1.14.0",
     "co": "^4.5.4",
     "colors": "~0.6.2",
