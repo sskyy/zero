@@ -1,20 +1,26 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { createStore } from 'redux'
-import Counter from './components/Counter'
-import counter from './reducers'
+import App from './components/App'
+import reducer from './reducers'
+import connect from './lib/reduxEnhancer'
+import {Provider} from 'react-redux'
 
-const store = createStore(counter)
+import {LOGIN, LOGOUT} from './actions'
+
+const store = createStore(reducer, connect([LOGIN, LOGOUT]))
 const rootEl = document.getElementById('root')
 
 function render() {
   ReactDOM.render(
-    <Counter
-      value={store.getState()}
-      onIncrement={() => store.dispatch({ type: 'INCREMENT' })}
-      onDecrement={() => store.dispatch({ type: 'DECREMENT' })}
-    />,
-    rootEl  
+    <Provider store={store}>
+      <App
+        value={store.getState()}
+        onIncrement={() => store.dispatch({ type: 'INCREMENT' })}
+        onDecrement={() => store.dispatch({ type: 'DECREMENT' })}
+      />
+    </Provider>
+    ,rootEl
   )
 }
 

@@ -1,9 +1,11 @@
-export default function counter(state = 0, action) {
+const userState = {
+  name: 'anonymous',
+  age: 1,
+  friends: [{ name: 'Tim', age:2}]
+}
+
+export default function user(state = userState, action) {
   switch (action.type) {
-    case 'INCREMENT':
-      return state + 1
-    case 'DECREMENT':
-      return state - 1
     default:
       return state
   }
